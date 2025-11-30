@@ -1,0 +1,429 @@
+import 'package:flutter/material.dart';
+import '../../constants/app_colors.dart';
+import '../../constants/app_strings.dart';
+import '../../models/report_model.dart';
+import '../../services/report_service.dart';
+import '../../widgets/loading_widget.dart';
+import '../../widgets/empty_state.dart';
+import '../../utils/helpers.dart';
+
+/// شاشة مراجعة البلاغات (للأدمن)
+class ReviewReportsScreen extends StatefulWidget {
+  const ReviewReportsScreen({super.key});
+
+  @override
+  State<ReviewReportsScreen> createState() => _ReviewReportsScreenState();
+}
+
+class _ReviewReportsScreenState extends State<ReviewReportsScreen> {
+  final _reportService = ReportService();
+  List<ReportModel> _reports = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+  String _selectedStatus = 'pending'; // pending, approved, rejected, all
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReports();
+  }
+
+  Future<void> _loadReports() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final reports = _selectedStatus == 'all'
+          ? await _reportService.getAllReports()
+          : await _reportService.getAllReports(status: _selectedStatus);
+      
+      setState(() {
+        _reports = reports;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(AppStrings.reviewReports),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadReports,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // فلتر الحالة
+          _buildStatusFilter(),
+          
+          // قائمة البلاغات
+          Expanded(child: _buildBody()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusFilter() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildFilterChip('pending', 'معلقة', AppColors.warning),
+            const SizedBox(width: 8),
+            _buildFilterChip('approved', 'مقبولة', AppColors.success),
+            const SizedBox(width: 8),
+            _buildFilterChip('rejected', 'مرفوضة', AppColors.error),
+            const SizedBox(width: 8),
+            _buildFilterChip('all', 'الكل', AppColors.info),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String status, String label, Color color) {
+    final isSelected = _selectedStatus == status;
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        setState(() {
+          _selectedStatus = status;
+        });
+        _loadReports();
+      },
+      selectedColor: color.withOpacity(0.2),
+      checkmarkColor: color,
+      labelStyle: TextStyle(
+        color: isSelected ? color : AppColors.textPrimary,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const LoadingWidget(message: 'جاري تحميل البلاغات...');
+    }
+
+    if (_errorMessage != null) {
+      return EmptyState(
+        icon: Icons.error_outline,
+        title: 'حدث خطأ',
+        message: _errorMessage!,
+        actionLabel: 'إعادة المحاولة',
+        onAction: _loadReports,
+      );
+    }
+
+    if (_reports.isEmpty) {
+      return EmptyState(
+        icon: Icons.check_circle_outline,
+        title: 'لا توجد بلاغات',
+        message: _selectedStatus == 'pending'
+            ? 'لا توجد بلاغات معلقة'
+            : 'لا توجد بلاغات في هذه الفئة',
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadReports,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _reports.length,
+        itemBuilder: (context, index) {
+          final report = _reports[index];
+          return _ReportCard(
+            report: report,
+            onApprove: () => _approveReport(report),
+            onReject: () => _rejectReport(report),
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _approveReport(ReportModel report) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('قبول البلاغ'),
+        content: Text(
+          'هل تريد قبول هذا البلاغ؟\n\n'
+          'رقم الهاتف: ${report.donorPhoneNumber}\n'
+          'السبب: ${report.reasonText}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(AppStrings.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+            child: const Text(AppStrings.approveReport),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await _reportService.approveReport(report.id);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم قبول البلاغ'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          _loadReports();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('فشل قبول البلاغ: ${e.toString()}'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _rejectReport(ReportModel report) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('رفض البلاغ'),
+        content: const Text('هل تريد رفض هذا البلاغ؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(AppStrings.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text(AppStrings.rejectReport),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await _reportService.rejectReport(report.id);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم رفض البلاغ'),
+              backgroundColor: AppColors.warning,
+            ),
+          );
+          _loadReports();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('فشل رفض البلاغ: ${e.toString()}'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+}
+
+/// بطاقة البلاغ
+class _ReportCard extends StatelessWidget {
+  final ReportModel report;
+  final VoidCallback? onApprove;
+  final VoidCallback? onReject;
+
+  const _ReportCard({
+    required this.report,
+    this.onApprove,
+    this.onReject,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'بلاغ عن: ${report.donorPhoneNumber}',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        Helpers.formatDateTime(report.createdAt),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                _buildStatusBadge(),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  Icons.report_problem,
+                  size: 16,
+                  color: AppColors.warning,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'السبب: ${report.reasonText}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
+            if (report.notes != null && report.notes!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.notes,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        report.notes!,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (report.isPending) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: onReject,
+                    icon: const Icon(Icons.close, size: 18),
+                    label: const Text(AppStrings.rejectReport),
+                    style: TextButton.styleFrom(foregroundColor: AppColors.error),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: onApprove,
+                    icon: const Icon(Icons.check, size: 18),
+                    label: const Text(AppStrings.approveReport),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.success,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge() {
+    Color color;
+    IconData icon;
+    
+    if (report.isPending) {
+      color = AppColors.warning;
+      icon = Icons.pending;
+    } else if (report.isApproved) {
+      color = AppColors.success;
+      icon = Icons.check_circle;
+    } else {
+      color = AppColors.error;
+      icon = Icons.cancel;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 4),
+          Text(
+            report.statusText,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

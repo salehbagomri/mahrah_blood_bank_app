@@ -1,0 +1,158 @@
+/// نموذج بيانات المتبرع
+class DonorModel {
+  final String id;
+  final String name;
+  final String phoneNumber;
+  final String bloodType;
+  final String district;
+  final int age;
+  final String gender; // male or female
+  final String? notes;
+  final bool isAvailable; // هل المتبرع متاح للتبرع؟
+  final DateTime? lastDonationDate; // آخر تاريخ تبرع
+  final DateTime? suspendedUntil; // موقوف حتى (إذا كان موقوفاً)
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? addedBy; // معرف المستشفى أو الأدمن الذي أضاف المتبرع
+  final bool isActive; // حساب نشط أم معطل
+
+  DonorModel({
+    required this.id,
+    required this.name,
+    required this.phoneNumber,
+    required this.bloodType,
+    required this.district,
+    required this.age,
+    required this.gender,
+    this.notes,
+    this.isAvailable = true,
+    this.lastDonationDate,
+    this.suspendedUntil,
+    required this.createdAt,
+    required this.updatedAt,
+    this.addedBy,
+    this.isActive = true,
+  });
+
+  /// تحويل من JSON إلى Model
+  factory DonorModel.fromJson(Map<String, dynamic> json) {
+    return DonorModel(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      phoneNumber: json['phone_number'] as String,
+      bloodType: json['blood_type'] as String,
+      district: json['district'] as String,
+      age: json['age'] as int,
+      gender: json['gender'] as String,
+      notes: json['notes'] as String?,
+      isAvailable: json['is_available'] as bool? ?? true,
+      lastDonationDate: json['last_donation_date'] != null
+          ? DateTime.parse(json['last_donation_date'] as String)
+          : null,
+      suspendedUntil: json['suspended_until'] != null
+          ? DateTime.parse(json['suspended_until'] as String)
+          : null,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: DateTime.parse(json['updated_at'] as String),
+      addedBy: json['added_by'] as String?,
+      isActive: json['is_active'] as bool? ?? true,
+    );
+  }
+
+  /// تحويل من Model إلى JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'phone_number': phoneNumber,
+      'blood_type': bloodType,
+      'district': district,
+      'age': age,
+      'gender': gender,
+      'notes': notes,
+      'is_available': isAvailable,
+      'last_donation_date': lastDonationDate?.toIso8601String(),
+      'suspended_until': suspendedUntil?.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+      'added_by': addedBy,
+      'is_active': isActive,
+    };
+  }
+
+  /// نسخ مع تعديل بعض الحقول
+  DonorModel copyWith({
+    String? id,
+    String? name,
+    String? phoneNumber,
+    String? bloodType,
+    String? district,
+    int? age,
+    String? gender,
+    String? notes,
+    bool? isAvailable,
+    DateTime? lastDonationDate,
+    DateTime? suspendedUntil,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    String? addedBy,
+    bool? isActive,
+  }) {
+    return DonorModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      bloodType: bloodType ?? this.bloodType,
+      district: district ?? this.district,
+      age: age ?? this.age,
+      gender: gender ?? this.gender,
+      notes: notes ?? this.notes,
+      isAvailable: isAvailable ?? this.isAvailable,
+      lastDonationDate: lastDonationDate ?? this.lastDonationDate,
+      suspendedUntil: suspendedUntil ?? this.suspendedUntil,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      addedBy: addedBy ?? this.addedBy,
+      isActive: isActive ?? this.isActive,
+    );
+  }
+
+  /// هل المتبرع موقوف حالياً؟
+  bool get isSuspended {
+    if (suspendedUntil == null) return false;
+    return DateTime.now().isBefore(suspendedUntil!);
+  }
+
+  /// هل يمكن للمتبرع التبرع الآن؟
+  bool get canDonateNow {
+    if (!isAvailable || !isActive) return false;
+    if (isSuspended) return false;
+    
+    // التحقق من مرور 6 أشهر على آخر تبرع
+    if (lastDonationDate != null) {
+      final sixMonthsAgo = DateTime.now().subtract(const Duration(days: 180));
+      return lastDonationDate!.isBefore(sixMonthsAgo);
+    }
+    
+    return true;
+  }
+
+  /// عدد الأيام المتبقية حتى يمكن التبرع
+  int? get daysUntilCanDonate {
+    if (canDonateNow) return 0;
+    
+    if (isSuspended && suspendedUntil != null) {
+      return suspendedUntil!.difference(DateTime.now()).inDays;
+    }
+    
+    if (lastDonationDate != null) {
+      final sixMonthsFromLast = lastDonationDate!.add(const Duration(days: 180));
+      if (DateTime.now().isBefore(sixMonthsFromLast)) {
+        return sixMonthsFromLast.difference(DateTime.now()).inDays;
+      }
+    }
+    
+    return null;
+  }
+}
+

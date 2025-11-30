@@ -1,0 +1,306 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+
+import '../../constants/app_colors.dart';
+import '../../constants/app_strings.dart';
+import '../../models/donor_model.dart';
+import '../../providers/donor_provider.dart';
+import '../../utils/validators.dart';
+import '../../utils/helpers.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/custom_dropdown.dart';
+import '../../widgets/loading_widget.dart';
+
+/// صفحة إضافة متبرع جديد
+class AddDonorScreen extends StatefulWidget {
+  const AddDonorScreen({super.key});
+
+  @override
+  State<AddDonorScreen> createState() => _AddDonorScreenState();
+}
+
+class _AddDonorScreenState extends State<AddDonorScreen> {
+  final _formKey = GlobalKey<FormState>();
+  
+  // Controllers
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _notesController = TextEditingController();
+  
+  // Selected values
+  String? _selectedBloodType;
+  String? _selectedDistrict;
+  String? _selectedGender;
+  
+  // Blood types
+  final List<String> _bloodTypes = [
+    'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-',
+  ];
+  
+  // Genders
+  final List<String> _genders = ['ذكر', 'أنثى'];
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _ageController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(AppStrings.addDonor),
+      ),
+      body: Consumer<DonorProvider>(
+        builder: (context, provider, _) {
+          if (provider.isLoading) {
+            return const LoadingWidget(message: 'جاري إضافة المتبرع...');
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // معلومات توضيحية
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.info.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.info.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: AppColors.info,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'املأ جميع البيانات المطلوبة. سيظهر المتبرع فوراً في نتائج البحث.',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.info,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // الاسم
+                  CustomTextField(
+                    controller: _nameController,
+                    label: AppStrings.donorName,
+                    hint: 'أدخل الاسم الكامل',
+                    icon: Icons.person,
+                    validator: Validators.validateName,
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // رقم الهاتف
+                  CustomTextField(
+                    controller: _phoneController,
+                    label: AppStrings.phoneNumber,
+                    hint: '777123456',
+                    icon: Icons.phone,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(9),
+                    ],
+                    validator: Validators.validatePhoneNumber,
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // فصيلة الدم
+                  CustomDropdown(
+                    value: _selectedBloodType,
+                    items: _bloodTypes,
+                    hint: AppStrings.selectBloodType,
+                    label: AppStrings.bloodType,
+                    icon: Icons.bloodtype,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedBloodType = value;
+                      });
+                    },
+                    validator: (value) => Validators.validateNotEmpty(
+                      value,
+                      AppStrings.bloodType,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // المديرية
+                  CustomDropdown(
+                    value: _selectedDistrict,
+                    items: AppStrings.districts,
+                    hint: AppStrings.selectDistrict,
+                    label: AppStrings.district,
+                    icon: Icons.location_on,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedDistrict = value;
+                      });
+                    },
+                    validator: (value) => Validators.validateNotEmpty(
+                      value,
+                      AppStrings.district,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // صف العمر والجنس
+                  Row(
+                    children: [
+                      // العمر
+                      Expanded(
+                        child: CustomTextField(
+                          controller: _ageController,
+                          label: AppStrings.age,
+                          hint: '25',
+                          icon: Icons.cake,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(2),
+                          ],
+                          validator: Validators.validateAge,
+                        ),
+                      ),
+                      
+                      const SizedBox(width: 16),
+                      
+                      // الجنس
+                      Expanded(
+                        child: CustomDropdown(
+                          value: _selectedGender,
+                          items: _genders,
+                          hint: 'اختر الجنس',
+                          label: AppStrings.gender,
+                          icon: Icons.people,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedGender = value;
+                            });
+                          },
+                          validator: (value) => Validators.validateNotEmpty(
+                            value,
+                            AppStrings.gender,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // الملاحظات (اختياري)
+                  CustomTextField(
+                    controller: _notesController,
+                    label: '${AppStrings.notes} (${AppStrings.optional})',
+                    hint: 'أي ملاحظات إضافية',
+                    icon: Icons.notes,
+                    maxLines: 3,
+                    maxLength: 200,
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // زر الحفظ
+                  ElevatedButton.icon(
+                    onPressed: _saveDonor,
+                    icon: const Icon(Icons.save),
+                    label: const Text(AppStrings.save),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// حفظ المتبرع
+  Future<void> _saveDonor() async {
+    // التحقق من صحة البيانات
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // إخفاء لوحة المفاتيح
+    FocusScope.of(context).unfocus();
+
+    // تنسيق رقم الهاتف
+    final formattedPhone = Helpers.formatPhoneNumber(_phoneController.text);
+
+    // إنشاء كائن المتبرع
+    final donor = DonorModel(
+      id: '', // سيتم إنشاؤه تلقائياً في قاعدة البيانات
+      name: _nameController.text.trim(),
+      phoneNumber: formattedPhone,
+      bloodType: _selectedBloodType!,
+      district: _selectedDistrict!,
+      age: int.parse(_ageController.text),
+      gender: Helpers.arabicToGender(_selectedGender!),
+      notes: _notesController.text.trim().isEmpty
+          ? null
+          : _notesController.text.trim(),
+      isAvailable: true,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    // حفظ المتبرع
+    final success = await context.read<DonorProvider>().addDonor(donor);
+
+    if (!mounted) return;
+
+    if (success) {
+      // عرض رسالة نجاح
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(AppStrings.donorAddedSuccessfully),
+          backgroundColor: AppColors.success,
+        ),
+      );
+
+      // العودة للصفحة السابقة
+      Navigator.of(context).pop();
+    } else {
+      // عرض رسالة خطأ
+      final errorMessage = context.read<DonorProvider>().errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage ?? AppStrings.errorOccurred),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+}
+
