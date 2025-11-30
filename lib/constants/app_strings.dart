@@ -100,7 +100,12 @@ class AppStrings {
   static const String numberNotWorking = 'الرقم لا يعمل';
   static const String wrongNumber = 'رقم خاطئ';
   static const String refusesToDonate = 'يرفض التبرع';
-  static const String other = 'أخرى';
+  static const String numberBusy = 'الرقم مشغول دائماً';
+  static const String noAnswer = 'لا يرد على الاتصال';
+  static const String deceased = 'متوفى';
+  static const String movedAway = 'انتقل من المنطقة';
+  static const String healthIssues = 'لديه مشاكل صحية';
+  static const String other = 'سبب آخر';
   static const String reportSubmitted = 'تم إرسال البلاغ';
   
   // تسجيل الدخول

@@ -28,6 +28,11 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
     'number_not_working': AppStrings.numberNotWorking,
     'wrong_number': AppStrings.wrongNumber,
     'refuses_to_donate': AppStrings.refusesToDonate,
+    'number_busy': AppStrings.numberBusy,
+    'no_answer': AppStrings.noAnswer,
+    'deceased': AppStrings.deceased,
+    'moved_away': AppStrings.movedAway,
+    'health_issues': AppStrings.healthIssues,
     'other': AppStrings.other,
   };
 
@@ -104,7 +109,7 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
                     
                     // سبب البلاغ
                     CustomDropdown(
-                      value: _selectedReason,
+                      value: _selectedReason != null ? _reportReasons[_selectedReason] : null,
                       items: _reportReasons.values.toList(),
                       hint: 'اختر سبب البلاغ',
                       label: AppStrings.reportReason,
