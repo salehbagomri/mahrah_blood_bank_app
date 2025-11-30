@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../services/report_service.dart';
+import '../../services/donor_service.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_dropdown.dart';
 import '../../widgets/loading_widget.dart';
@@ -19,6 +20,7 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
   final _phoneController = TextEditingController();
   final _notesController = TextEditingController();
   final _reportService = ReportService();
+  final _donorService = DonorService();
   
   String? _selectedReason;
   bool _isLoading = false;
@@ -230,17 +232,25 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
     });
 
     try {
-      // البحث عن المتبرع بالرقم (يجب إنشاء دالة للبحث)
-      // للتبسيط، سنفترض أن لدينا معرف المتبرع
-      // في التطبيق الحقيقي، يجب البحث عن المتبرع أولاً
+      // البحث عن المتبرع بالرقم
+      final donor = await _donorService.findDonorByPhone(_phoneController.text);
       
-      // يمكن إضافة منطق للبحث عن المتبرع بالرقم هنا
-      // const donorId = 'temporary-id'; // يجب استبداله بالمعرف الحقيقي
+      if (donor == null) {
+        // المتبرع غير موجود
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('رقم الهاتف غير موجود في قاعدة البيانات'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
       
-      // لكن للبساطة، سنستخدم رقم الهاتف مباشرة وإنشاء معرف مؤقت
-      
+      // إرسال البلاغ مع معرف المتبرع الصحيح
       await _reportService.addReport(
-        donorId: 'donor-${_phoneController.text}', // معرف مؤقت
+        donorId: donor.id,
         donorPhoneNumber: _phoneController.text,
         reason: _selectedReason!,
         notes: _notesController.text.trim().isEmpty

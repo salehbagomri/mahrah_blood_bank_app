@@ -107,6 +107,25 @@ class DonorService {
     }
   }
 
+  /// البحث عن متبرع برقم الهاتف
+  Future<DonorModel?> findDonorByPhone(String phoneNumber) async {
+    try {
+      final response = await _client
+          .from('donors')
+          .select()
+          .eq('phone_number', phoneNumber)
+          .maybeSingle();
+
+      if (response == null) {
+        return null;
+      }
+
+      return DonorModel.fromJson(response);
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// حذف متبرع (الأدمن فقط)
   Future<void> deleteDonor(String id) async {
     try {
