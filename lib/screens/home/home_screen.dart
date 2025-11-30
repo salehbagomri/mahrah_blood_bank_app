@@ -65,11 +65,6 @@ class _HomeScreenState extends State<HomeScreen> {
               
               const SizedBox(height: 24),
               
-              // إحصائيات سريعة
-              _buildQuickStats(),
-              
-              const SizedBox(height: 24),
-              
               // الأزرار الرئيسية
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -172,159 +167,78 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// سلايدر التوعية
   Widget _buildAwarenessSlider() {
-    final slides = [
-      _AwarenessSlide(
-        icon: Icons.favorite,
-        title: 'التبرع بالدم ينقذ الأرواح',
-        description: 'كل تبرع بالدم يمكن أن ينقذ حياة ثلاثة أشخاص',
-        color: Colors.red,
-      ),
-      _AwarenessSlide(
-        icon: Icons.health_and_safety,
-        title: 'فوائد التبرع بالدم',
-        description: 'التبرع بالدم يحسن صحتك ويجدد خلايا الدم',
-        color: Colors.green,
-      ),
-      _AwarenessSlide(
-        icon: Icons.timer,
-        title: 'كل 3 ثواني',
-        description: 'يحتاج شخص ما إلى نقل دم كل 3 ثواني',
-        color: Colors.orange,
-      ),
-      _AwarenessSlide(
-        icon: Icons.people,
-        title: 'كن بطلاً',
-        description: 'انضم لآلاف المتبرعين واصنع الفرق',
-        color: Colors.blue,
-      ),
-    ];
-
-    return Column(
-      children: [
-        CarouselSlider(
-          items: slides,
-          carouselController: _carouselController,
-          options: CarouselOptions(
-            height: 180,
-            viewportFraction: 0.85,
-            enlargeCenterPage: true,
-            enableInfiniteScroll: true,
-            autoPlay: true,
-            autoPlayInterval: const Duration(seconds: 5),
-            autoPlayAnimationDuration: const Duration(milliseconds: 800),
-            autoPlayCurve: Curves.easeInOut,
-            onPageChanged: (index, reason) {
-              setState(() {
-                _currentSlideIndex = index;
-              });
-            },
-          ),
-        ),
-        const SizedBox(height: 12),
-        AnimatedSmoothIndicator(
-          activeIndex: _currentSlideIndex,
-          count: slides.length,
-          effect: WormEffect(
-            dotHeight: 8,
-            dotWidth: 8,
-            activeDotColor: AppColors.primary,
-            dotColor: AppColors.textHint.withOpacity(0.3),
-          ),
-          onDotClicked: (index) {
-            _carouselController.animateToPage(index);
-          },
-        ),
-      ],
-    );
-  }
-
-  /// إحصائيات سريعة
-  Widget _buildQuickStats() {
     return Consumer<StatisticsProvider>(
       builder: (context, provider, _) {
-        if (provider.isLoading && provider.statistics == null) {
-          return const SizedBox.shrink();
-        }
-
-        if (provider.statistics == null) {
-          return const SizedBox.shrink();
-        }
-
-        final stats = provider.statistics!;
+        final totalDonors = provider.statistics?.totalDonors ?? 0;
         
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primary, AppColors.primaryDark],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.3),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-              ),
-            ],
+        final slides = [
+          _AwarenessSlide(
+            icon: Icons.favorite,
+            title: 'التبرع بالدم ينقذ الأرواح',
+            description: 'كل تبرع بالدم يمكن أن ينقذ حياة ثلاثة أشخاص',
+            color: Colors.red,
           ),
+          _AwarenessSlide(
+            icon: Icons.health_and_safety,
+            title: 'فوائد التبرع بالدم',
+            description: 'التبرع بالدم يحسن صحتك ويجدد خلايا الدم',
+            color: Colors.green,
+          ),
+          _AwarenessSlide(
+            icon: Icons.timer,
+            title: 'كل 3 ثواني',
+            description: 'يحتاج شخص ما إلى نقل دم كل 3 ثواني',
+            color: Colors.orange,
+          ),
+          _AwarenessSlide(
+            icon: Icons.people,
+            title: 'كن بطلاً',
+            description: 'انضم لآلاف المتبرعين واصنع الفرق',
+            color: Colors.blue,
+          ),
+          _StatisticsSlide(
+            totalDonors: totalDonors,
+          ),
+        ];
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.analytics,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'إحصائيات سريعة',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              // النقاط في الأعلى
+              AnimatedSmoothIndicator(
+                activeIndex: _currentSlideIndex,
+                count: slides.length,
+                effect: WormEffect(
+                  dotHeight: 8,
+                  dotWidth: 8,
+                  activeDotColor: AppColors.primary,
+                  dotColor: AppColors.textHint.withOpacity(0.3),
+                ),
+                onDotClicked: (index) {
+                  _carouselController.animateToPage(index);
+                },
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _QuickStatItem(
-                      icon: Icons.people,
-                      label: 'المتبرعين',
-                      value: '${stats.totalDonors}',
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 40,
-                    color: Colors.white.withOpacity(0.3),
-                  ),
-                  Expanded(
-                    child: _QuickStatItem(
-                      icon: Icons.bloodtype,
-                      label: 'الفصائل',
-                      value: '${stats.bloodTypeDistribution.length}',
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 40,
-                    color: Colors.white.withOpacity(0.3),
-                  ),
-                  Expanded(
-                    child: _QuickStatItem(
-                      icon: Icons.location_city,
-                      label: 'المناطق',
-                      value: '${stats.districtDistribution.length}',
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 12),
+              // السلايدر
+              CarouselSlider(
+                items: slides,
+                carouselController: _carouselController,
+                options: CarouselOptions(
+                  height: 200,
+                  viewportFraction: 1.0,
+                  enlargeCenterPage: false,
+                  enableInfiniteScroll: true,
+                  autoPlay: true,
+                  autoPlayInterval: const Duration(seconds: 5),
+                  autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                  autoPlayCurve: Curves.easeInOut,
+                  onPageChanged: (index, reason) {
+                    setState(() {
+                      _currentSlideIndex = index;
+                    });
+                  },
+                ),
               ),
             ],
           ),
@@ -332,6 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
+
 
   /// كارد تسجيل دخول الإدارة
   Widget _buildAdminLoginCard() {
@@ -436,7 +351,6 @@ class _AwarenessSlide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [color, color.withOpacity(0.7)],
@@ -500,45 +414,94 @@ class _AwarenessSlide extends StatelessWidget {
   }
 }
 
-/// عنصر إحصائيات سريع
-class _QuickStatItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
+/// شريحة الإحصائيات
+class _StatisticsSlide extends StatelessWidget {
+  final int totalDonors;
 
-  const _QuickStatItem({
-    required this.icon,
-    required this.label,
-    required this.value,
+  const _StatisticsSlide({
+    required this.totalDonors,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: Colors.white,
-          size: 24,
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.primary, AppColors.primaryDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.analytics,
+                  color: Colors.white,
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'إحصائيات المتبرعين',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.people,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    '$totalDonors',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'متبرع مسجل في النظام',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.95),
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.9),
-            fontSize: 12,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
