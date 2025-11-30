@@ -10,6 +10,7 @@ import 'services/supabase_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/donor_provider.dart';
 import 'providers/statistics_provider.dart';
+import 'providers/dashboard_provider.dart';
 import 'screens/home/home_screen.dart';
 
 void main() async {
@@ -46,6 +47,7 @@ class MahrahBloodBankApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => DonorProvider()),
         ChangeNotifierProvider(create: (_) => StatisticsProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
       ],
       child: MaterialApp(
         title: AppStrings.appName,

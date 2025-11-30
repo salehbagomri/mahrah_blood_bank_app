@@ -4,16 +4,21 @@ import 'package:provider/provider.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/donor_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../widgets/loading_widget.dart';
-import '../../services/donor_service.dart';
+import '../../widgets/empty_state.dart';
 import '../donor/add_donor_screen.dart';
 import 'manage_donors_hospital_screen.dart';
 import 'suspended_donors_screen.dart';
 import 'advanced_search_screen.dart';
 import 'blood_type_report_screen.dart';
+import 'widgets/dashboard_header.dart';
+import 'widgets/statistics_grid.dart';
+import 'widgets/enhanced_main_card.dart';
+import 'widgets/quick_actions_row.dart';
+import 'widgets/dashboard_search_bar.dart';
 
-/// لوحة إدارة المستشفى
+/// لوحة إدارة المستشفى - النسخة المحسّنة
 class HospitalDashboardScreen extends StatefulWidget {
   const HospitalDashboardScreen({super.key});
 
@@ -22,251 +27,49 @@ class HospitalDashboardScreen extends StatefulWidget {
 }
 
 class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
-  final _donorService = DonorService();
-  int _totalDonors = 0;
-  int _suspendedDonors = 0;
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _loadDashboardData();
-  }
-
-  Future<void> _loadDashboardData() async {
-    setState(() => _isLoading = true);
-    
-    try {
-      // تحميل جميع البيانات
-      final results = await Future.wait([
-        context.read<DonorProvider>().loadDonors(),
-        _donorService.getSuspendedDonors(),
-      ]);
-
-      if (mounted) {
-        setState(() {
-          _totalDonors = context.read<DonorProvider>().donors.length;
-          _suspendedDonors = (results[1] as List).length;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+    // تحميل البيانات عند فتح الشاشة
+    Future.microtask(() {
+      context.read<DashboardProvider>().loadDashboardData();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.hospitalDashboard),
-        actions: [
-          // زر تحديث
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadDashboardData,
-          ),
-          // زر تسجيل الخروج
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await context.read<AuthProvider>().signOut();
-              if (context.mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-        ],
-      ),
+      appBar: _buildAppBar(),
       body: RefreshIndicator(
-        onRefresh: _loadDashboardData,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // معلومات المستخدم
-            _UserInfoCard(),
-            
-            const SizedBox(height: 20),
-            
-            // إحصائيات سريعة
-            if (!_isLoading)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _QuickStat(
-                        icon: Icons.people,
-                        label: 'المتبرعين',
-                        value: '$_totalDonors',
-                        color: AppColors.success,
-                      ),
-                      Container(width: 1, height: 40, color: AppColors.divider),
-                      _QuickStat(
-                        icon: Icons.pause_circle,
-                        label: 'موقوفين',
-                        value: '$_suspendedDonors',
-                        color: AppColors.warning,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            
-            const SizedBox(height: 20),
-            
-            // الأقسام الرئيسية
-            Row(
-              children: [
-                Expanded(
-                  child: _DashboardCard(
-                    icon: Icons.people,
-                    title: AppStrings.manageDonors,
-                    color: AppColors.primary,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ManageDonorsHospitalScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _DashboardCard(
-                    icon: Icons.search,
-                    title: AppStrings.advancedSearch,
-                    color: AppColors.info,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const AdvancedSearchScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 12),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: _DashboardCard(
-                    icon: Icons.pause_circle,
-                    title: AppStrings.suspendedDonors,
-                    color: AppColors.warning,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const SuspendedDonorsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _DashboardCard(
-                    icon: Icons.bar_chart,
-                    title: AppStrings.bloodTypeReport,
-                    color: AppColors.success,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const BloodTypeReportScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // قائمة المتبرعين
-            Consumer<DonorProvider>(
-              builder: (context, provider, _) {
-                if (provider.isLoading) {
-                  return const LoadingWidget(message: 'جاري تحميل المتبرعين...');
-                }
+        onRefresh: () => context.read<DashboardProvider>().refreshDashboard(),
+        child: Consumer<DashboardProvider>(
+          builder: (context, provider, _) {
+            if (provider.isLoading) {
+              return const LoadingWidget(message: 'جاري تحميل البيانات...');
+            }
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'جميع المتبرعين (${provider.donors.length})',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (provider.donors.isEmpty)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(32),
-                          child: Text('لا يوجد متبرعين حالياً'),
-                        ),
-                      )
-                    else
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: provider.donors.take(10).length,
-                        itemBuilder: (context, index) {
-                          final donor = provider.donors[index];
-                          return Card(
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: AppColors.primary,
-                                child: Text(
-                                  donor.bloodType,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              title: Text(donor.name),
-                              subtitle: Text('${donor.district} - ${donor.phoneNumber}'),
-                              trailing: PopupMenuButton(
-                                itemBuilder: (context) => [
-                                  const PopupMenuItem(
-                                    value: 'edit',
-                                    child: Text('تعديل'),
-                                  ),
-                                  const PopupMenuItem(
-                                    value: 'suspend',
-                                    child: Text('إيقاف 6 أشهر'),
-                                  ),
-                                ],
-                                onSelected: (value) {
-                                  if (value == 'suspend') {
-                                    _suspendDonor(donor.id);
-                                  }
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                  ],
-                );
-              },
-            ),
-          ],
+            if (provider.hasError) {
+              return EmptyState(
+                icon: Icons.error_outline,
+                title: 'حدث خطأ',
+                message: provider.errorMessage ?? 'فشل تحميل البيانات',
+                actionLabel: 'إعادة المحاولة',
+                onAction: () => provider.loadDashboardData(),
+              );
+            }
+
+            final stats = provider.statistics;
+            if (stats == null) {
+              return const EmptyState(
+                icon: Icons.dashboard,
+                title: 'لا توجد بيانات',
+                message: 'لا توجد بيانات لعرضها',
+              );
+            }
+
+            return _buildDashboardContent(stats);
+          },
         ),
-          ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -274,202 +77,202 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
             MaterialPageRoute(
               builder: (_) => const AddDonorScreen(),
             ),
-          ).then((_) => _loadDashboardData());
+          ).then((_) => context.read<DashboardProvider>().refreshDashboard());
         },
         icon: const Icon(Icons.person_add),
         label: const Text('إضافة متبرع'),
+        backgroundColor: AppColors.primary,
       ),
     );
   }
 
-  /// إيقاف متبرع لمدة 6 أشهر
-  Future<void> _suspendDonor(String donorId) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تأكيد الإيقاف'),
-        content: const Text('هل تريد إيقاف هذا المتبرع لمدة 6 أشهر؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(AppStrings.cancel),
+  AppBar _buildAppBar() {
+    return AppBar(
+      title: const Text(AppStrings.hospitalDashboard),
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.primary, AppColors.primaryDark],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(AppStrings.confirm),
-          ),
+        ),
+      ),
+      actions: [
+        // زر تحديث
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          tooltip: 'تحديث',
+          onPressed: () {
+            context.read<DashboardProvider>().refreshDashboard();
+          },
+        ),
+
+        // زر تسجيل الخروج
+        IconButton(
+          icon: const Icon(Icons.logout),
+          tooltip: 'تسجيل الخروج',
+          onPressed: () async {
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('تأكيد تسجيل الخروج'),
+                content: const Text('هل تريد تسجيل الخروج من حسابك؟'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text(AppStrings.cancel),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.error,
+                    ),
+                    child: const Text('تسجيل الخروج'),
+                  ),
+                ],
+              ),
+            );
+
+            if (confirmed == true && mounted) {
+              await context.read<AuthProvider>().signOut();
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
+            }
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDashboardContent(stats) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 1. Header مع معلومات المستشفى
+          const DashboardHeader(),
+          const SizedBox(height: 20),
+
+          // 2. شريط البحث السريع
+          const DashboardSearchBar(),
+          const SizedBox(height: 20),
+
+          // 3. شبكة الإحصائيات (6 إحصائيات)
+          StatisticsGrid(statistics: stats),
+          const SizedBox(height: 20),
+
+          // 4. الإجراءات السريعة
+          const QuickActionsRow(),
+          const SizedBox(height: 20),
+
+          // 5. الأقسام الرئيسية
+          _buildMainSections(stats),
         ],
       ),
     );
-
-    if (confirmed == true && mounted) {
-      final success = await context.read<DonorProvider>().suspendDonorFor6Months(donorId);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              success ? 'تم إيقاف المتبرع لمدة 6 أشهر' : 'فشل إيقاف المتبرع',
-            ),
-            backgroundColor: success ? AppColors.success : AppColors.error,
-          ),
-        );
-      }
-    }
   }
-}
 
-/// بطاقة معلومات المستخدم
-class _UserInfoCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, _) {
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: AppColors.primary,
-                  child: const Icon(
-                    Icons.local_hospital,
-                    size: 30,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'مرحباً',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      Text(
-                        authProvider.currentUser?.email ?? 'المستشفى',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'مستشفى',
-                    style: TextStyle(
-                      color: AppColors.success,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// إحصائية سريعة
-class _QuickStat extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
-
-  const _QuickStat({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildMainSections(stats) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: color, size: 32),
-        const SizedBox(height: 8),
         Text(
-          value,
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+          'الأقسام الرئيسية',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: color,
               ),
         ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary,
+        const SizedBox(height: 12),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.15,
+          children: [
+            // إدارة المتبرعين
+            EnhancedMainCard(
+              icon: Icons.people,
+              title: AppStrings.manageDonors,
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.primaryDark],
               ),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ManageDonorsHospitalScreen(),
+                  ),
+                );
+              },
+            ),
+
+            // البحث المتقدم
+            EnhancedMainCard(
+              icon: Icons.search,
+              title: AppStrings.advancedSearch,
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.info,
+                  AppColors.info.withOpacity(0.7),
+                ],
+              ),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AdvancedSearchScreen(),
+                  ),
+                );
+              },
+            ),
+
+            // المتبرعين الموقوفين
+            EnhancedMainCard(
+              icon: Icons.pause_circle,
+              title: AppStrings.suspendedDonors,
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.warning,
+                  AppColors.warning.withOpacity(0.7),
+                ],
+              ),
+              badge: stats.suspendedDonors > 0
+                  ? '${stats.suspendedDonors}'
+                  : null,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const SuspendedDonorsScreen(),
+                  ),
+                );
+              },
+            ),
+
+            // تقارير فصائل الدم
+            EnhancedMainCard(
+              icon: Icons.bar_chart,
+              title: AppStrings.bloodTypeReport,
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.success,
+                  AppColors.success.withOpacity(0.7),
+                ],
+              ),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const BloodTypeReportScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ],
     );
   }
 }
-
-/// بطاقة لوحة التحكم
-class _DashboardCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _DashboardCard({
-    required this.icon,
-    required this.title,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 30,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-

@@ -306,4 +306,94 @@ class DonorService {
       throw Exception('فشل الحصول على الإحصائيات: ${e.toString()}');
     }
   }
+
+  /// الحصول على عدد المتبرعين المتاحين للتبرع الآن
+  /// المتاحين = is_active = true AND (suspended_until IS NULL OR suspended_until < NOW())
+  Future<int> getAvailableDonorsCount() async {
+    try {
+      final now = DateTime.now().toIso8601String();
+
+      final response = await _client
+          .from('donors')
+          .select()
+          .eq('is_active', true)
+          .or('suspended_until.is.null,suspended_until.lt.$now');
+
+      return (response as List).length;
+    } catch (e) {
+      throw Exception('فشل الحصول على عدد المتاحين: ${e.toString()}');
+    }
+  }
+
+  /// الحصول على عدد المتبرعين الجدد هذا الشهر
+  /// الشرط: created_at >= بداية الشهر الحالي
+  Future<int> getNewDonorsThisMonth() async {
+    try {
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1).toIso8601String();
+
+      final response = await _client
+          .from('donors')
+          .select()
+          .gte('created_at', startOfMonth);
+
+      return (response as List).length;
+    } catch (e) {
+      throw Exception('فشل الحصول على عدد المتبرعين الجدد: ${e.toString()}');
+    }
+  }
+
+  /// الحصول على عدد المناطق المغطاة (distinct districts)
+  Future<int> getCoveredDistrictsCount() async {
+    try {
+      final response = await _client
+          .from('donors')
+          .select('district')
+          .eq('is_active', true);
+
+      final districts = (response as List)
+          .map((e) => e['district'] as String)
+          .toSet();
+
+      return districts.length;
+    } catch (e) {
+      throw Exception('فشل الحصول على عدد المناطق: ${e.toString()}');
+    }
+  }
+
+  /// الحصول على آخر المتبرعين المضافين
+  Future<List<DonorModel>> getRecentDonors({int limit = 5}) async {
+    try {
+      final response = await _client
+          .from('donors')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      return (response as List)
+          .map((json) => DonorModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw Exception('فشل الحصول على المتبرعين الجدد: ${e.toString()}');
+    }
+  }
+
+  /// الحصول على آخر عمليات التبرع
+  /// المتبرعين الذين last_donation_date ليس null، مرتبين حسب last_donation_date DESC
+  Future<List<DonorModel>> getRecentDonations({int limit = 5}) async {
+    try {
+      final response = await _client
+          .from('donors')
+          .select()
+          .not('last_donation_date', 'is', null)
+          .order('last_donation_date', ascending: false)
+          .limit(limit);
+
+      return (response as List)
+          .map((json) => DonorModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw Exception('فشل الحصول على آخر التبرعات: ${e.toString()}');
+    }
+  }
 }

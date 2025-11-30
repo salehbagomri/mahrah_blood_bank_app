@@ -156,6 +156,15 @@ class DonorProvider with ChangeNotifier {
     }
   }
 
+  /// الحصول على جميع المتبرعين (بدون تحديث الحالة - للتصدير)
+  Future<List<DonorModel>> loadAllDonors() async {
+    try {
+      return await _donorService.getAllDonors();
+    } catch (e) {
+      throw Exception('فشل تحميل المتبرعين: ${e.toString()}');
+    }
+  }
+
   /// البحث بالاسم أو رقم الهاتف
   Future<void> searchByNameOrPhone(String query) async {
     _isLoading = true;

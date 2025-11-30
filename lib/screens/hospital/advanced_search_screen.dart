@@ -6,7 +6,7 @@ import '../../models/donor_model.dart';
 import '../../providers/donor_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
-import '../../utils/helpers.dart';
+import '../../widgets/donor_card.dart';
 
 /// شاشة البحث المتقدم للمستشفى
 class AdvancedSearchScreen extends StatefulWidget {
@@ -184,64 +184,13 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: _searchResults.length,
       itemBuilder: (context, index) {
         final donor = _searchResults[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: _getBloodTypeColor(donor.bloodType),
-              child: Text(
-                donor.bloodType,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            title: Text(
-              donor.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${donor.district} - ${Helpers.genderToArabic(donor.gender)}'),
-                Text(
-                  donor.phoneNumber,
-                  style: const TextStyle(color: AppColors.info),
-                ),
-                if (donor.isSuspended)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.warning.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'موقوف حتى ${Helpers.formatDate(donor.suspendedUntil!)}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.warning,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.info_outline),
-              onPressed: () => _showDonorDetails(donor),
-            ),
-          ),
+        return DonorCard(
+          donor: donor,
+          showActions: true,
         );
       },
     );
@@ -311,139 +260,5 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     }
   }
 
-  void _showDonorDetails(DonorModel donor) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) => SingleChildScrollView(
-          controller: scrollController,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: _getBloodTypeColor(donor.bloodType),
-                    child: Text(
-                      donor.bloodType,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          donor.name,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          donor.phoneNumber,
-                          style: const TextStyle(
-                            color: AppColors.info,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 16),
-              _buildDetailRow('العمر', '${donor.age} سنة'),
-              _buildDetailRow('الجنس', Helpers.genderToArabic(donor.gender)),
-              _buildDetailRow('المديرية', donor.district),
-              if (donor.notes != null && donor.notes!.isNotEmpty)
-                _buildDetailRow('ملاحظات', donor.notes!),
-              if (donor.lastDonationDate != null)
-                _buildDetailRow(
-                  'آخر تبرع',
-                  Helpers.formatDate(donor.lastDonationDate!),
-                ),
-              if (donor.isSuspended)
-                _buildDetailRow(
-                  'موقوف حتى',
-                  Helpers.formatDate(donor.suspendedUntil!),
-                  valueColor: AppColors.warning,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              '$label:',
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                color: valueColor,
-                fontWeight: valueColor != null ? FontWeight.bold : null,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getBloodTypeColor(String bloodType) {
-    if (bloodType.contains('A') && !bloodType.contains('AB')) {
-      return AppColors.bloodTypeA;
-    }
-    if (bloodType.contains('B') && !bloodType.contains('AB')) {
-      return AppColors.bloodTypeB;
-    }
-    if (bloodType.contains('AB')) return AppColors.bloodTypeAB;
-    if (bloodType.contains('O')) return AppColors.bloodTypeO;
-    return AppColors.primary;
-  }
 }
 
