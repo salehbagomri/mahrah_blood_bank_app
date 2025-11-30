@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:excel/excel.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -11,6 +12,21 @@ import '../models/dashboard_statistics_model.dart';
 
 /// خدمة تصدير التقارير إلى Excel و PDF
 class ExportService {
+  // الخط العربي للـ PDF
+  static pw.Font? _arabicFont;
+
+  /// تحميل الخط العربي
+  static Future<pw.Font> _loadArabicFont() async {
+    if (_arabicFont != null) return _arabicFont!;
+    
+    try {
+      final fontData = await rootBundle.load('assets/fonts/IBMPlexSansArabic-Regular.ttf');
+      _arabicFont = pw.Font.ttf(fontData);
+      return _arabicFont!;
+    } catch (e) {
+      throw Exception('فشل تحميل الخط العربي: ${e.toString()}');
+    }
+  }
   /// تصدير قائمة المتبرعين إلى Excel
   Future<String> exportDonorsToExcel(List<DonorModel> donors) async {
     try {
@@ -159,6 +175,9 @@ class ExportService {
   /// تصدير قائمة المتبرعين إلى PDF
   Future<String> exportDonorsToPDF(List<DonorModel> donors) async {
     try {
+      // تحميل الخط العربي أولاً
+      final arabicFont = await _loadArabicFont();
+      
       final pdf = pw.Document();
 
       // تقسيم المتبرعين إلى صفحات (25 متبرع لكل صفحة)
@@ -176,6 +195,9 @@ class ExportService {
           pw.Page(
             pageFormat: PdfPageFormat.a4,
             textDirection: pw.TextDirection.rtl,
+            theme: pw.ThemeData.withFont(
+              base: arabicFont,
+            ),
             build: (context) {
               return pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -190,6 +212,7 @@ class ExportService {
                         fontSize: 18,
                         fontWeight: pw.FontWeight.bold,
                         color: PdfColors.white,
+                        font: arabicFont,
                       ),
                     ),
                   ),
@@ -201,11 +224,11 @@ class ExportService {
                     children: [
                       pw.Text(
                         'التاريخ: ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
-                        style: const pw.TextStyle(fontSize: 10),
+                        style: pw.TextStyle(fontSize: 10, font: arabicFont),
                       ),
                       pw.Text(
                         'صفحة ${pageIndex + 1} من $totalPages',
-                        style: const pw.TextStyle(fontSize: 10),
+                        style: pw.TextStyle(fontSize: 10, font: arabicFont),
                       ),
                     ],
                   ),
@@ -219,12 +242,12 @@ class ExportService {
                       pw.TableRow(
                         decoration: const pw.BoxDecoration(color: PdfColors.grey300),
                         children: [
-                          _buildTableCell('م', isHeader: true),
-                          _buildTableCell('الاسم', isHeader: true),
-                          _buildTableCell('الهاتف', isHeader: true),
-                          _buildTableCell('الفصيلة', isHeader: true),
-                          _buildTableCell('المديرية', isHeader: true),
-                          _buildTableCell('الحالة', isHeader: true),
+                          _buildTableCell('م', isHeader: true, font: arabicFont),
+                          _buildTableCell('الاسم', isHeader: true, font: arabicFont),
+                          _buildTableCell('الهاتف', isHeader: true, font: arabicFont),
+                          _buildTableCell('الفصيلة', isHeader: true, font: arabicFont),
+                          _buildTableCell('المديرية', isHeader: true, font: arabicFont),
+                          _buildTableCell('الحالة', isHeader: true, font: arabicFont),
                         ],
                       ),
 
@@ -234,12 +257,12 @@ class ExportService {
                         final donor = entry.value;
                         return pw.TableRow(
                           children: [
-                            _buildTableCell(index.toString()),
-                            _buildTableCell(donor.name),
-                            _buildTableCell(donor.phoneNumber),
-                            _buildTableCell(donor.bloodType),
-                            _buildTableCell(donor.district),
-                            _buildTableCell(donor.isAvailable ? 'متاح' : 'موقوف'),
+                            _buildTableCell(index.toString(), font: arabicFont),
+                            _buildTableCell(donor.name, font: arabicFont),
+                            _buildTableCell(donor.phoneNumber, font: arabicFont),
+                            _buildTableCell(donor.bloodType, font: arabicFont),
+                            _buildTableCell(donor.district, font: arabicFont),
+                            _buildTableCell(donor.isAvailable ? 'متاح' : 'موقوف', font: arabicFont),
                           ],
                         );
                       }),
@@ -269,12 +292,18 @@ class ExportService {
   /// تصدير الإحصائيات إلى PDF
   Future<String> exportStatisticsToPDF(DashboardStatisticsModel stats) async {
     try {
+      // تحميل الخط العربي أولاً
+      final arabicFont = await _loadArabicFont();
+      
       final pdf = pw.Document();
 
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
           textDirection: pw.TextDirection.rtl,
+          theme: pw.ThemeData.withFont(
+            base: arabicFont,
+          ),
           build: (context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -290,6 +319,7 @@ class ExportService {
                       fontSize: 20,
                       fontWeight: pw.FontWeight.bold,
                       color: PdfColors.white,
+                      font: arabicFont,
                     ),
                   ),
                 ),
@@ -298,7 +328,7 @@ class ExportService {
                 // التاريخ
                 pw.Text(
                   'التاريخ: ${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now())}',
-                  style: const pw.TextStyle(fontSize: 11),
+                  style: pw.TextStyle(fontSize: 11, font: arabicFont),
                 ),
                 pw.SizedBox(height: 20),
 
@@ -311,18 +341,19 @@ class ExportService {
                     style: pw.TextStyle(
                       fontSize: 14,
                       fontWeight: pw.FontWeight.bold,
+                      font: arabicFont,
                     ),
                   ),
                 ),
                 pw.SizedBox(height: 10),
 
-                _buildStatRow('إجمالي المتبرعين', stats.totalDonors.toString()),
-                _buildStatRow('المتاحين للتبرع الآن', stats.availableDonors.toString()),
-                _buildStatRow('الموقوفين حالياً', stats.suspendedDonors.toString()),
-                _buildStatRow('جدد هذا الشهر', stats.newDonorsThisMonth.toString()),
-                _buildStatRow('المناطق المغطاة', stats.coveredDistrictsCount.toString()),
+                _buildStatRow('إجمالي المتبرعين', stats.totalDonors.toString(), arabicFont),
+                _buildStatRow('المتاحين للتبرع الآن', stats.availableDonors.toString(), arabicFont),
+                _buildStatRow('الموقوفين حالياً', stats.suspendedDonors.toString(), arabicFont),
+                _buildStatRow('جدد هذا الشهر', stats.newDonorsThisMonth.toString(), arabicFont),
+                _buildStatRow('المناطق المغطاة', stats.coveredDistrictsCount.toString(), arabicFont),
                 if (stats.mostCommonBloodType != null)
-                  _buildStatRow('أكثر فصيلة', '${stats.mostCommonBloodType} (${stats.mostCommonBloodTypeCount})'),
+                  _buildStatRow('أكثر فصيلة', '${stats.mostCommonBloodType} (${stats.mostCommonBloodTypeCount})', arabicFont),
 
                 pw.SizedBox(height: 20),
 
@@ -335,6 +366,7 @@ class ExportService {
                     style: pw.TextStyle(
                       fontSize: 14,
                       fontWeight: pw.FontWeight.bold,
+                      font: arabicFont,
                     ),
                   ),
                 ),
@@ -346,15 +378,15 @@ class ExportService {
                     pw.TableRow(
                       decoration: const pw.BoxDecoration(color: PdfColors.grey300),
                       children: [
-                        _buildTableCell('الفصيلة', isHeader: true),
-                        _buildTableCell('العدد', isHeader: true),
+                        _buildTableCell('الفصيلة', isHeader: true, font: arabicFont),
+                        _buildTableCell('العدد', isHeader: true, font: arabicFont),
                       ],
                     ),
                     ...stats.bloodTypeDistribution.entries.map((entry) {
                       return pw.TableRow(
                         children: [
-                          _buildTableCell(entry.key),
-                          _buildTableCell(entry.value.toString()),
+                          _buildTableCell(entry.key, font: arabicFont),
+                          _buildTableCell(entry.value.toString(), font: arabicFont),
                         ],
                       );
                     }),
@@ -372,6 +404,7 @@ class ExportService {
                     style: pw.TextStyle(
                       fontSize: 14,
                       fontWeight: pw.FontWeight.bold,
+                      font: arabicFont,
                     ),
                   ),
                 ),
@@ -383,15 +416,15 @@ class ExportService {
                     pw.TableRow(
                       decoration: const pw.BoxDecoration(color: PdfColors.grey300),
                       children: [
-                        _buildTableCell('المديرية', isHeader: true),
-                        _buildTableCell('العدد', isHeader: true),
+                        _buildTableCell('المديرية', isHeader: true, font: arabicFont),
+                        _buildTableCell('العدد', isHeader: true, font: arabicFont),
                       ],
                     ),
                     ...stats.districtDistribution.entries.map((entry) {
                       return pw.TableRow(
                         children: [
-                          _buildTableCell(entry.key),
-                          _buildTableCell(entry.value.toString()),
+                          _buildTableCell(entry.key, font: arabicFont),
+                          _buildTableCell(entry.value.toString(), font: arabicFont),
                         ],
                       );
                     }),
@@ -442,7 +475,7 @@ class ExportService {
   }
 
   /// بناء خلية جدول PDF
-  pw.Widget _buildTableCell(String text, {bool isHeader = false}) {
+  pw.Widget _buildTableCell(String text, {bool isHeader = false, pw.Font? font}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(5),
       child: pw.Text(
@@ -450,6 +483,7 @@ class ExportService {
         style: pw.TextStyle(
           fontSize: isHeader ? 10 : 9,
           fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
+          font: font,
         ),
         textAlign: pw.TextAlign.center,
       ),
@@ -457,7 +491,7 @@ class ExportService {
   }
 
   /// بناء صف إحصائية
-  pw.Widget _buildStatRow(String label, String value) {
+  pw.Widget _buildStatRow(String label, String value, pw.Font font) {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 10),
       decoration: pw.BoxDecoration(
@@ -468,13 +502,14 @@ class ExportService {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text(label, style: const pw.TextStyle(fontSize: 12)),
+          pw.Text(label, style: pw.TextStyle(fontSize: 12, font: font)),
           pw.Text(
             value,
             style: pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.blue700,
+              font: font,
             ),
           ),
         ],
