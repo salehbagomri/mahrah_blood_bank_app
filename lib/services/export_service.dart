@@ -18,15 +18,18 @@ class ExportService {
   /// تحميل الخط العربي
   static Future<pw.Font> _loadArabicFont() async {
     if (_arabicFont != null) return _arabicFont!;
-    
+
     try {
-      final fontData = await rootBundle.load('assets/fonts/IBMPlexSansArabic-Regular.ttf');
+      final fontData = await rootBundle.load(
+        'assets/fonts/IBMPlexSansArabic-Regular.ttf',
+      );
       _arabicFont = pw.Font.ttf(fontData);
       return _arabicFont!;
     } catch (e) {
       throw Exception('فشل تحميل الخط العربي: ${e.toString()}');
     }
   }
+
   /// تصدير قائمة المتبرعين إلى Excel
   Future<String> exportDonorsToExcel(List<DonorModel> donors) async {
     try {
@@ -48,7 +51,9 @@ class ExportService {
 
       // تنسيق العناوين
       for (var i = 0; i < 9; i++) {
-        var cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+        var cell = sheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0),
+        );
         cell.cellStyle = CellStyle(
           bold: true,
           backgroundColorHex: ExcelColor.fromHexString('#4CAF50'),
@@ -95,14 +100,13 @@ class ExportService {
 
       // ورقة الإحصائيات العامة
       Sheet statsSheet = excel['الإحصائيات العامة'];
-      statsSheet.appendRow([
-        TextCellValue('المؤشر'),
-        TextCellValue('القيمة'),
-      ]);
+      statsSheet.appendRow([TextCellValue('المؤشر'), TextCellValue('القيمة')]);
 
       // تنسيق العناوين
       for (var i = 0; i < 2; i++) {
-        var cell = statsSheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+        var cell = statsSheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0),
+        );
         cell.cellStyle = CellStyle(
           bold: true,
           backgroundColorHex: ExcelColor.fromHexString('#2196F3'),
@@ -111,13 +115,33 @@ class ExportService {
       }
 
       // البيانات
-      statsSheet.appendRow([TextCellValue('إجمالي المتبرعين'), IntCellValue(stats.totalDonors)]);
-      statsSheet.appendRow([TextCellValue('المتاحين للتبرع'), IntCellValue(stats.availableDonors)]);
-      statsSheet.appendRow([TextCellValue('الموقوفين'), IntCellValue(stats.suspendedDonors)]);
-      statsSheet.appendRow([TextCellValue('جدد هذا الشهر'), IntCellValue(stats.newDonorsThisMonth)]);
-      statsSheet.appendRow([TextCellValue('المناطق المغطاة'), IntCellValue(stats.coveredDistrictsCount)]);
+      statsSheet.appendRow([
+        TextCellValue('إجمالي المتبرعين'),
+        IntCellValue(stats.totalDonors),
+      ]);
+      statsSheet.appendRow([
+        TextCellValue('المتاحين للتبرع'),
+        IntCellValue(stats.availableDonors),
+      ]);
+      statsSheet.appendRow([
+        TextCellValue('الموقوفين'),
+        IntCellValue(stats.suspendedDonors),
+      ]);
+      statsSheet.appendRow([
+        TextCellValue('جدد هذا الشهر'),
+        IntCellValue(stats.newDonorsThisMonth),
+      ]);
+      statsSheet.appendRow([
+        TextCellValue('المناطق المغطاة'),
+        IntCellValue(stats.coveredDistrictsCount),
+      ]);
       if (stats.mostCommonBloodType != null) {
-        statsSheet.appendRow([TextCellValue('أكثر فصيلة'), TextCellValue('${stats.mostCommonBloodType} (${stats.mostCommonBloodTypeCount})')]);
+        statsSheet.appendRow([
+          TextCellValue('أكثر فصيلة'),
+          TextCellValue(
+            '${stats.mostCommonBloodType} (${stats.mostCommonBloodTypeCount})',
+          ),
+        ]);
       }
 
       // ورقة توزيع فصائل الدم
@@ -125,7 +149,9 @@ class ExportService {
       bloodSheet.appendRow([TextCellValue('الفصيلة'), TextCellValue('العدد')]);
 
       for (var i = 0; i < 2; i++) {
-        var cell = bloodSheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+        var cell = bloodSheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0),
+        );
         cell.cellStyle = CellStyle(
           bold: true,
           backgroundColorHex: ExcelColor.fromHexString('#F44336'),
@@ -139,10 +165,15 @@ class ExportService {
 
       // ورقة توزيع المديريات
       Sheet districtSheet = excel['المديريات'];
-      districtSheet.appendRow([TextCellValue('المديرية'), TextCellValue('العدد')]);
+      districtSheet.appendRow([
+        TextCellValue('المديرية'),
+        TextCellValue('العدد'),
+      ]);
 
       for (var i = 0; i < 2; i++) {
-        var cell = districtSheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+        var cell = districtSheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0),
+        );
         cell.cellStyle = CellStyle(
           bold: true,
           backgroundColorHex: ExcelColor.fromHexString('#FF9800'),
@@ -177,7 +208,7 @@ class ExportService {
     try {
       // تحميل الخط العربي أولاً
       final arabicFont = await _loadArabicFont();
-      
+
       final pdf = pw.Document();
 
       // تقسيم المتبرعين إلى صفحات (25 متبرع لكل صفحة)
@@ -195,9 +226,7 @@ class ExportService {
           pw.Page(
             pageFormat: PdfPageFormat.a4,
             textDirection: pw.TextDirection.rtl,
-            theme: pw.ThemeData.withFont(
-              base: arabicFont,
-            ),
+            theme: pw.ThemeData.withFont(base: arabicFont),
             build: (context) {
               return pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -240,14 +269,40 @@ class ExportService {
                     children: [
                       // العناوين
                       pw.TableRow(
-                        decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                        decoration: const pw.BoxDecoration(
+                          color: PdfColors.grey300,
+                        ),
                         children: [
-                          _buildTableCell('م', isHeader: true, font: arabicFont),
-                          _buildTableCell('الاسم', isHeader: true, font: arabicFont),
-                          _buildTableCell('الهاتف', isHeader: true, font: arabicFont),
-                          _buildTableCell('الفصيلة', isHeader: true, font: arabicFont),
-                          _buildTableCell('المديرية', isHeader: true, font: arabicFont),
-                          _buildTableCell('الحالة', isHeader: true, font: arabicFont),
+                          _buildTableCell(
+                            'م',
+                            isHeader: true,
+                            font: arabicFont,
+                          ),
+                          _buildTableCell(
+                            'الاسم',
+                            isHeader: true,
+                            font: arabicFont,
+                          ),
+                          _buildTableCell(
+                            'الهاتف',
+                            isHeader: true,
+                            font: arabicFont,
+                          ),
+                          _buildTableCell(
+                            'الفصيلة',
+                            isHeader: true,
+                            font: arabicFont,
+                          ),
+                          _buildTableCell(
+                            'المديرية',
+                            isHeader: true,
+                            font: arabicFont,
+                          ),
+                          _buildTableCell(
+                            'الحالة',
+                            isHeader: true,
+                            font: arabicFont,
+                          ),
                         ],
                       ),
 
@@ -259,10 +314,16 @@ class ExportService {
                           children: [
                             _buildTableCell(index.toString(), font: arabicFont),
                             _buildTableCell(donor.name, font: arabicFont),
-                            _buildTableCell(donor.phoneNumber, font: arabicFont),
+                            _buildTableCell(
+                              donor.phoneNumber,
+                              font: arabicFont,
+                            ),
                             _buildTableCell(donor.bloodType, font: arabicFont),
                             _buildTableCell(donor.district, font: arabicFont),
-                            _buildTableCell(donor.isAvailable ? 'متاح' : 'موقوف', font: arabicFont),
+                            _buildTableCell(
+                              donor.isAvailable ? 'متاح' : 'موقوف',
+                              font: arabicFont,
+                            ),
                           ],
                         );
                       }),
@@ -294,16 +355,14 @@ class ExportService {
     try {
       // تحميل الخط العربي أولاً
       final arabicFont = await _loadArabicFont();
-      
+
       final pdf = pw.Document();
 
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
           textDirection: pw.TextDirection.rtl,
-          theme: pw.ThemeData.withFont(
-            base: arabicFont,
-          ),
+          theme: pw.ThemeData.withFont(base: arabicFont),
           build: (context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -347,13 +406,37 @@ class ExportService {
                 ),
                 pw.SizedBox(height: 10),
 
-                _buildStatRow('إجمالي المتبرعين', stats.totalDonors.toString(), arabicFont),
-                _buildStatRow('المتاحين للتبرع الآن', stats.availableDonors.toString(), arabicFont),
-                _buildStatRow('الموقوفين حالياً', stats.suspendedDonors.toString(), arabicFont),
-                _buildStatRow('جدد هذا الشهر', stats.newDonorsThisMonth.toString(), arabicFont),
-                _buildStatRow('المناطق المغطاة', stats.coveredDistrictsCount.toString(), arabicFont),
+                _buildStatRow(
+                  'إجمالي المتبرعين',
+                  stats.totalDonors.toString(),
+                  arabicFont,
+                ),
+                _buildStatRow(
+                  'المتاحين للتبرع الآن',
+                  stats.availableDonors.toString(),
+                  arabicFont,
+                ),
+                _buildStatRow(
+                  'الموقوفين حالياً',
+                  stats.suspendedDonors.toString(),
+                  arabicFont,
+                ),
+                _buildStatRow(
+                  'جدد هذا الشهر',
+                  stats.newDonorsThisMonth.toString(),
+                  arabicFont,
+                ),
+                _buildStatRow(
+                  'المناطق المغطاة',
+                  stats.coveredDistrictsCount.toString(),
+                  arabicFont,
+                ),
                 if (stats.mostCommonBloodType != null)
-                  _buildStatRow('أكثر فصيلة', '${stats.mostCommonBloodType} (${stats.mostCommonBloodTypeCount})', arabicFont),
+                  _buildStatRow(
+                    'أكثر فصيلة',
+                    '${stats.mostCommonBloodType} (${stats.mostCommonBloodTypeCount})',
+                    arabicFont,
+                  ),
 
                 pw.SizedBox(height: 20),
 
@@ -376,17 +459,30 @@ class ExportService {
                   border: pw.TableBorder.all(color: PdfColors.grey400),
                   children: [
                     pw.TableRow(
-                      decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                      decoration: const pw.BoxDecoration(
+                        color: PdfColors.grey300,
+                      ),
                       children: [
-                        _buildTableCell('الفصيلة', isHeader: true, font: arabicFont),
-                        _buildTableCell('العدد', isHeader: true, font: arabicFont),
+                        _buildTableCell(
+                          'الفصيلة',
+                          isHeader: true,
+                          font: arabicFont,
+                        ),
+                        _buildTableCell(
+                          'العدد',
+                          isHeader: true,
+                          font: arabicFont,
+                        ),
                       ],
                     ),
                     ...stats.bloodTypeDistribution.entries.map((entry) {
                       return pw.TableRow(
                         children: [
                           _buildTableCell(entry.key, font: arabicFont),
-                          _buildTableCell(entry.value.toString(), font: arabicFont),
+                          _buildTableCell(
+                            entry.value.toString(),
+                            font: arabicFont,
+                          ),
                         ],
                       );
                     }),
@@ -414,17 +510,30 @@ class ExportService {
                   border: pw.TableBorder.all(color: PdfColors.grey400),
                   children: [
                     pw.TableRow(
-                      decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                      decoration: const pw.BoxDecoration(
+                        color: PdfColors.grey300,
+                      ),
                       children: [
-                        _buildTableCell('المديرية', isHeader: true, font: arabicFont),
-                        _buildTableCell('العدد', isHeader: true, font: arabicFont),
+                        _buildTableCell(
+                          'المديرية',
+                          isHeader: true,
+                          font: arabicFont,
+                        ),
+                        _buildTableCell(
+                          'العدد',
+                          isHeader: true,
+                          font: arabicFont,
+                        ),
                       ],
                     ),
                     ...stats.districtDistribution.entries.map((entry) {
                       return pw.TableRow(
                         children: [
                           _buildTableCell(entry.key, font: arabicFont),
-                          _buildTableCell(entry.value.toString(), font: arabicFont),
+                          _buildTableCell(
+                            entry.value.toString(),
+                            font: arabicFont,
+                          ),
                         ],
                       );
                     }),
@@ -465,17 +574,18 @@ class ExportService {
   /// مشاركة ملف
   Future<void> shareFile(String filePath, String subject) async {
     try {
-      await Share.shareXFiles(
-        [XFile(filePath)],
-        subject: subject,
-      );
+      await Share.shareXFiles([XFile(filePath)], subject: subject);
     } catch (e) {
       throw Exception('فشل مشاركة الملف: ${e.toString()}');
     }
   }
 
   /// بناء خلية جدول PDF
-  pw.Widget _buildTableCell(String text, {bool isHeader = false, pw.Font? font}) {
+  pw.Widget _buildTableCell(
+    String text, {
+    bool isHeader = false,
+    pw.Font? font,
+  }) {
     return pw.Padding(
       padding: const pw.EdgeInsets.all(5),
       child: pw.Text(
@@ -495,9 +605,7 @@ class ExportService {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 10),
       decoration: pw.BoxDecoration(
-        border: pw.Border(
-          bottom: pw.BorderSide(color: PdfColors.grey300),
-        ),
+        border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300)),
       ),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
