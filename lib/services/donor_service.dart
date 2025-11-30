@@ -107,14 +107,49 @@ class DonorService {
     }
   }
 
-  /// البحث عن متبرع برقم الهاتف
+  /// البحث عن متبرع برقم الهاتف (يدعم مع/بدون الرمز الدولي)
   Future<DonorModel?> findDonorByPhone(String phoneNumber) async {
     try {
-      final response = await _client
+      // تنظيف الرقم
+      String cleanPhone = phoneNumber.trim();
+      
+      // إزالة المسافات والشرطات
+      cleanPhone = cleanPhone.replaceAll(RegExp(r'[\s\-]'), '');
+      
+      // إذا كان الرقم يبدأ بـ +967، نحذف الرمز الدولي
+      if (cleanPhone.startsWith('+967')) {
+        cleanPhone = cleanPhone.substring(4);
+      } else if (cleanPhone.startsWith('967')) {
+        cleanPhone = cleanPhone.substring(3);
+      } else if (cleanPhone.startsWith('00967')) {
+        cleanPhone = cleanPhone.substring(5);
+      }
+      
+      // البحث بالرقم المنظف
+      var response = await _client
           .from('donors')
           .select()
-          .eq('phone_number', phoneNumber)
+          .eq('phone_number', cleanPhone)
           .maybeSingle();
+
+      // إذا لم نجد، نحاول مع الرمز الدولي
+      if (response == null) {
+        response = await _client
+            .from('donors')
+            .select()
+            .eq('phone_number', '+967$cleanPhone')
+            .maybeSingle();
+      }
+      
+      // إذا لم نجد، نحاول بدون صفر أول
+      if (response == null && cleanPhone.startsWith('0')) {
+        final phoneWithoutZero = cleanPhone.substring(1);
+        response = await _client
+            .from('donors')
+            .select()
+            .or('phone_number.eq.$phoneWithoutZero,phone_number.eq.+967$phoneWithoutZero')
+            .maybeSingle();
+      }
 
       if (response == null) {
         return null;

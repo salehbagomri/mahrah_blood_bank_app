@@ -96,12 +96,22 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
                     CustomTextField(
                       controller: _phoneController,
                       label: 'رقم الهاتف المراد الإبلاغ عنه',
-                      hint: '777123456',
+                      hint: '777123456 أو +967777123456',
                       icon: Icons.phone,
                       keyboardType: TextInputType.phone,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'رقم الهاتف مطلوب';
+                        }
+                        // التحقق من صحة الرقم
+                        String cleanPhone = value.trim().replaceAll(RegExp(r'[\s\-]'), '');
+                        if (cleanPhone.startsWith('+967')) {
+                          cleanPhone = cleanPhone.substring(4);
+                        } else if (cleanPhone.startsWith('967')) {
+                          cleanPhone = cleanPhone.substring(3);
+                        }
+                        if (cleanPhone.length < 9) {
+                          return 'رقم الهاتف غير صالح';
                         }
                         return null;
                       },
