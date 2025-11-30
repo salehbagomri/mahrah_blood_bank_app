@@ -397,14 +397,14 @@ class _AwarenessSlide extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(28, 24, 28, 50),
+        padding: const EdgeInsets.fromLTRB(28, 20, 28, 40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // الأيقونة مع تأثير
             Container(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.25),
                 shape: BoxShape.circle,
@@ -416,9 +416,9 @@ class _AwarenessSlide extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Icon(icon, color: Colors.white, size: 48),
+              child: Icon(icon, color: Colors.white, size: 44),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             // العنوان
             Text(
               title,
@@ -437,7 +437,7 @@ class _AwarenessSlide extends StatelessWidget {
               style: TextStyle(
                 color: Colors.white.withOpacity(0.95),
                 fontSize: 15,
-                height: 1.4,
+                height: 1.3,
               ),
               textAlign: TextAlign.center,
               maxLines: 2,
@@ -477,14 +477,14 @@ class _StatisticsSlide extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(28, 24, 28, 50),
+        padding: const EdgeInsets.fromLTRB(28, 20, 28, 40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // أيقونة الوسام
             Container(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.25),
                 shape: BoxShape.circle,
@@ -499,29 +499,29 @@ class _StatisticsSlide extends StatelessWidget {
               child: const Icon(
                 Icons.military_tech,
                 color: Colors.white,
-                size: 48,
+                size: 44,
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             // العنوان الرئيسي
             const Text(
               'أبطال المهرة',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.5,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             // الوصف مع العدد
             Text(
               'هناك $totalDonors بطل تبرع بدمه لينقذ حياة',
               style: TextStyle(
                 color: Colors.white.withOpacity(0.95),
-                fontSize: 16,
-                height: 1.4,
+                fontSize: 15,
+                height: 1.3,
               ),
               textAlign: TextAlign.center,
               maxLines: 2,
