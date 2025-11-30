@@ -209,17 +209,25 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               // السلايدر
               CarouselSlider(
-                items: slides,
+                items: slides.map((slide) {
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    child: slide,
+                  );
+                }).toList(),
                 carouselController: _carouselController,
                 options: CarouselOptions(
-                  height: 200,
+                  height: 240,
                   viewportFraction: 1.0,
                   enlargeCenterPage: false,
                   enableInfiniteScroll: true,
                   autoPlay: true,
-                  autoPlayInterval: const Duration(seconds: 5),
-                  autoPlayAnimationDuration: const Duration(milliseconds: 800),
-                  autoPlayCurve: Curves.easeInOut,
+                  autoPlayInterval: const Duration(seconds: 6),
+                  autoPlayAnimationDuration: const Duration(milliseconds: 1000),
+                  autoPlayCurve: Curves.fastOutSlowIn,
+                  scrollPhysics: const BouncingScrollPhysics(),
+                  pageSnapping: true,
                   onPageChanged: (index, reason) {
                     setState(() {
                       _currentSlideIndex = index;
@@ -229,22 +237,38 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               // النقاط كطبقة فوق الكارد
               Positioned(
-                bottom: 12,
+                bottom: 16,
                 left: 0,
                 right: 0,
                 child: Center(
-                  child: AnimatedSmoothIndicator(
-                    activeIndex: _currentSlideIndex,
-                    count: slides.length,
-                    effect: WormEffect(
-                      dotHeight: 8,
-                      dotWidth: 8,
-                      activeDotColor: Colors.white,
-                      dotColor: Colors.white.withOpacity(0.4),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                     ),
-                    onDotClicked: (index) {
-                      _carouselController.animateToPage(index);
-                    },
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.25),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: AnimatedSmoothIndicator(
+                      activeIndex: _currentSlideIndex,
+                      count: slides.length,
+                      effect: WormEffect(
+                        dotHeight: 8,
+                        dotWidth: 8,
+                        spacing: 6,
+                        activeDotColor: Colors.white,
+                        dotColor: Colors.white.withOpacity(0.5),
+                        paintStyle: PaintingStyle.fill,
+                      ),
+                      onDotClicked: (index) {
+                        _carouselController.animateToPage(
+                          index,
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeInOutCubic,
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -357,55 +381,69 @@ class _AwarenessSlide extends StatelessWidget {
       height: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color, color.withOpacity(0.7)],
+          colors: [color, color.withOpacity(0.75)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: color.withOpacity(0.4),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+            spreadRadius: 1,
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // الأيقونة مع تأثير
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withOpacity(0.25),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                child: Icon(icon, color: Colors.white, size: 40),
+                child: Icon(icon, color: Colors.white, size: 48),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
+              // العنوان
               Text(
                 title,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 18,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
+              // الوصف
               Flexible(
                 child: Text(
                   description,
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.95),
-                    fontSize: 14,
+                    fontSize: 15,
+                    height: 1.4,
                   ),
                   textAlign: TextAlign.center,
-                  maxLines: 2,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -434,55 +472,69 @@ class _StatisticsSlide extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: AppColors.primary.withOpacity(0.4),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+            spreadRadius: 1,
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // أيقونة الوسام
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withOpacity(0.25),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: const Icon(
                   Icons.military_tech,
                   color: Colors.white,
-                  size: 40,
+                  size: 48,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
+              // العنوان الرئيسي
               const Text(
                 'أبطال المهرة',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 22,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
+              // الوصف مع العدد
               Flexible(
                 child: Text(
                   'هناك $totalDonors بطل تبرع بدمه لينقذ حياة',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.95),
-                    fontSize: 15,
+                    fontSize: 16,
+                    height: 1.4,
                   ),
                   textAlign: TextAlign.center,
-                  maxLines: 2,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
