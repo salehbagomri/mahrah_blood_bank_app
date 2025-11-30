@@ -8,7 +8,7 @@ class DonorService {
   SupabaseClient get _client => _supabaseService.client;
 
   /// البحث عن متبرعين
-  /// 
+  ///
   /// [bloodType] - فصيلة الدم المطلوبة
   /// [district] - المديرية المطلوبة
   /// [availableOnly] - البحث عن المتبرعين المتاحين فقط
@@ -19,14 +19,16 @@ class DonorService {
   }) async {
     try {
       // استخدام الدالة المخصصة search_donors
-      final response = await _client.rpc(
-        'search_donors',
-        params: {
-          'p_blood_type': bloodType,
-          'p_district': district,
-          'p_available_only': availableOnly,
-        },
-      ).select();
+      final response = await _client
+          .rpc(
+            'search_donors',
+            params: {
+              'p_blood_type': bloodType,
+              'p_district': district,
+              'p_available_only': availableOnly,
+            },
+          )
+          .select();
 
       return (response as List)
           .map((json) => DonorModel.fromJson(json as Map<String, dynamic>))
@@ -112,10 +114,10 @@ class DonorService {
     try {
       // تنظيف الرقم
       String cleanPhone = phoneNumber.trim();
-      
+
       // إزالة المسافات والشرطات
       cleanPhone = cleanPhone.replaceAll(RegExp(r'[\s\-]'), '');
-      
+
       // إذا كان الرقم يبدأ بـ +967، نحذف الرمز الدولي
       if (cleanPhone.startsWith('+967')) {
         cleanPhone = cleanPhone.substring(4);
@@ -124,7 +126,7 @@ class DonorService {
       } else if (cleanPhone.startsWith('00967')) {
         cleanPhone = cleanPhone.substring(5);
       }
-      
+
       // البحث بالرقم المنظف
       var response = await _client
           .from('donors')
@@ -140,14 +142,16 @@ class DonorService {
             .eq('phone_number', '+967$cleanPhone')
             .maybeSingle();
       }
-      
+
       // إذا لم نجد، نحاول بدون صفر أول
       if (response == null && cleanPhone.startsWith('0')) {
         final phoneWithoutZero = cleanPhone.substring(1);
         response = await _client
             .from('donors')
             .select()
-            .or('phone_number.eq.$phoneWithoutZero,phone_number.eq.+967$phoneWithoutZero')
+            .or(
+              'phone_number.eq.$phoneWithoutZero,phone_number.eq.+967$phoneWithoutZero',
+            )
             .maybeSingle();
       }
 
@@ -164,10 +168,7 @@ class DonorService {
   /// حذف متبرع (الأدمن فقط)
   Future<void> deleteDonor(String id) async {
     try {
-      await _client
-          .from('donors')
-          .delete()
-          .eq('id', id);
+      await _client.from('donors').delete().eq('id', id);
     } catch (e) {
       throw Exception('فشل حذف المتبرع: ${e.toString()}');
     }
@@ -177,7 +178,7 @@ class DonorService {
   Future<DonorModel> suspendDonorFor6Months(String id) async {
     try {
       final suspendedUntil = DateTime.now().add(const Duration(days: 180));
-      
+
       final response = await _client
           .from('donors')
           .update({
@@ -198,7 +199,7 @@ class DonorService {
   Future<List<DonorModel>> getSuspendedDonors() async {
     try {
       final now = DateTime.now().toIso8601String();
-      
+
       final response = await _client
           .from('donors')
           .select()
@@ -215,10 +216,7 @@ class DonorService {
   }
 
   /// الحصول على جميع المتبرعين (للمستشفى والأدمن)
-  Future<List<DonorModel>> getAllDonors({
-    int? limit,
-    int? offset,
-  }) async {
+  Future<List<DonorModel>> getAllDonors({int? limit, int? offset}) async {
     try {
       var query = _client
           .from('donors')
@@ -269,7 +267,7 @@ class DonorService {
           .eq('is_active', true);
 
       final Map<String, int> counts = {};
-      
+
       for (var donor in response as List) {
         final bloodType = donor['blood_type'] as String;
         counts[bloodType] = (counts[bloodType] ?? 0) + 1;
@@ -290,7 +288,7 @@ class DonorService {
           .eq('is_active', true);
 
       final Map<String, int> counts = {};
-      
+
       for (var donor in response as List) {
         final district = donor['district'] as String;
         counts[district] = (counts[district] ?? 0) + 1;
@@ -302,4 +300,3 @@ class DonorService {
     }
   }
 }
-

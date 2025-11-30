@@ -21,7 +21,7 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
   final _notesController = TextEditingController();
   final _reportService = ReportService();
   final _donorService = DonorService();
-  
+
   String? _selectedReason;
   bool _isLoading = false;
 
@@ -48,9 +48,7 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.reportTitle),
-      ),
+      appBar: AppBar(title: const Text(AppStrings.reportTitle)),
       body: _isLoading
           ? const LoadingWidget(message: 'جاري إرسال البلاغ...')
           : SingleChildScrollView(
@@ -81,17 +79,16 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
                           Expanded(
                             child: Text(
                               'ساعدنا في تحسين قاعدة البيانات بالإبلاغ عن الأرقام غير الصالحة',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.textPrimary,
-                                  ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: AppColors.textPrimary),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // رقم الهاتف
                     CustomTextField(
                       controller: _phoneController,
@@ -104,7 +101,10 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
                           return 'رقم الهاتف مطلوب';
                         }
                         // التحقق من صحة الرقم
-                        String cleanPhone = value.trim().replaceAll(RegExp(r'[\s\-]'), '');
+                        String cleanPhone = value.trim().replaceAll(
+                          RegExp(r'[\s\-]'),
+                          '',
+                        );
                         if (cleanPhone.startsWith('+967')) {
                           cleanPhone = cleanPhone.substring(4);
                         } else if (cleanPhone.startsWith('967')) {
@@ -116,12 +116,14 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
                         return null;
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // سبب البلاغ
                     CustomDropdown(
-                      value: _selectedReason != null ? _reportReasons[_selectedReason] : null,
+                      value: _selectedReason != null
+                          ? _reportReasons[_selectedReason]
+                          : null,
                       items: _reportReasons.values.toList(),
                       hint: 'اختر سبب البلاغ',
                       label: AppStrings.reportReason,
@@ -141,9 +143,9 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
                         return null;
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // ملاحظات (اختياري)
                     CustomTextField(
                       controller: _notesController,
@@ -153,9 +155,9 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
                       maxLines: 4,
                       maxLength: 300,
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // معلومات مهمة
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -177,7 +179,8 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
                               Expanded(
                                 child: Text(
                                   'سيتم مراجعة البلاغ من قبل إدارة التطبيق',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
                                         color: AppColors.textSecondary,
                                       ),
                                 ),
@@ -197,7 +200,8 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
                               Expanded(
                                 child: Text(
                                   'البلاغات سرية ولن يتم مشاركتها مع أحد',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
                                         color: AppColors.textSecondary,
                                       ),
                                 ),
@@ -207,9 +211,9 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // زر الإرسال
                     ElevatedButton.icon(
                       onPressed: _submitReport,
@@ -244,7 +248,7 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
     try {
       // البحث عن المتبرع بالرقم
       final donor = await _donorService.findDonorByPhone(_phoneController.text);
-      
+
       if (donor == null) {
         // المتبرع غير موجود
         if (!mounted) return;
@@ -257,7 +261,7 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
         setState(() => _isLoading = false);
         return;
       }
-      
+
       // إرسال البلاغ مع معرف المتبرع الصحيح
       await _reportService.addReport(
         donorId: donor.id,
@@ -299,4 +303,3 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
     }
   }
 }
-
