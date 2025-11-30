@@ -3,6 +3,8 @@ class DonorModel {
   final String id;
   final String name;
   final String phoneNumber;
+  final String? phoneNumber2; // رقم هاتف إضافي 1
+  final String? phoneNumber3; // رقم هاتف إضافي 2
   final String bloodType;
   final String district;
   final int age;
@@ -20,6 +22,8 @@ class DonorModel {
     required this.id,
     required this.name,
     required this.phoneNumber,
+    this.phoneNumber2,
+    this.phoneNumber3,
     required this.bloodType,
     required this.district,
     required this.age,
@@ -40,6 +44,8 @@ class DonorModel {
       id: json['id'] as String,
       name: json['name'] as String,
       phoneNumber: json['phone_number'] as String,
+      phoneNumber2: json['phone_number_2'] as String?,
+      phoneNumber3: json['phone_number_3'] as String?,
       bloodType: json['blood_type'] as String,
       district: json['district'] as String,
       age: json['age'] as int,
@@ -65,6 +71,8 @@ class DonorModel {
       'id': id,
       'name': name,
       'phone_number': phoneNumber,
+      'phone_number_2': phoneNumber2,
+      'phone_number_3': phoneNumber3,
       'blood_type': bloodType,
       'district': district,
       'age': age,
@@ -80,11 +88,25 @@ class DonorModel {
     };
   }
 
+  /// الحصول على قائمة بجميع الأرقام (غير الفارغة)
+  List<String> get allPhoneNumbers {
+    final numbers = <String>[phoneNumber];
+    if (phoneNumber2 != null && phoneNumber2!.isNotEmpty) {
+      numbers.add(phoneNumber2!);
+    }
+    if (phoneNumber3 != null && phoneNumber3!.isNotEmpty) {
+      numbers.add(phoneNumber3!);
+    }
+    return numbers;
+  }
+
   /// نسخ مع تعديل بعض الحقول
   DonorModel copyWith({
     String? id,
     String? name,
     String? phoneNumber,
+    String? phoneNumber2,
+    String? phoneNumber3,
     String? bloodType,
     String? district,
     int? age,
@@ -102,6 +124,8 @@ class DonorModel {
       id: id ?? this.id,
       name: name ?? this.name,
       phoneNumber: phoneNumber ?? this.phoneNumber,
+      phoneNumber2: phoneNumber2 ?? this.phoneNumber2,
+      phoneNumber3: phoneNumber3 ?? this.phoneNumber3,
       bloodType: bloodType ?? this.bloodType,
       district: district ?? this.district,
       age: age ?? this.age,

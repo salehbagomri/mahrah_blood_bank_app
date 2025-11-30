@@ -62,6 +62,8 @@ class DonorService {
           .insert({
             'name': donor.name,
             'phone_number': donor.phoneNumber,
+            'phone_number_2': donor.phoneNumber2,
+            'phone_number_3': donor.phoneNumber3,
             'blood_type': donor.bloodType,
             'district': donor.district,
             'age': donor.age,
@@ -89,6 +91,8 @@ class DonorService {
           .update({
             'name': donor.name,
             'phone_number': donor.phoneNumber,
+            'phone_number_2': donor.phoneNumber2,
+            'phone_number_3': donor.phoneNumber3,
             'blood_type': donor.bloodType,
             'district': donor.district,
             'age': donor.age,
@@ -109,7 +113,7 @@ class DonorService {
     }
   }
 
-  /// البحث عن متبرع برقم الهاتف (يدعم مع/بدون الرمز الدولي)
+  /// البحث عن متبرع برقم الهاتف (يدعم مع/بدون الرمز الدولي + أرقام متعددة)
   Future<DonorModel?> findDonorByPhone(String phoneNumber) async {
     try {
       // تنظيف الرقم
@@ -127,21 +131,19 @@ class DonorService {
         cleanPhone = cleanPhone.substring(5);
       }
 
-      // البحث بالرقم المنظف
+      // البحث في جميع الأرقام (الرئيسي والإضافية)
       var response = await _client
           .from('donors')
           .select()
-          .eq('phone_number', cleanPhone)
+          .or(
+            'phone_number.eq.$cleanPhone,'
+            'phone_number.eq.+967$cleanPhone,'
+            'phone_number_2.eq.$cleanPhone,'
+            'phone_number_2.eq.+967$cleanPhone,'
+            'phone_number_3.eq.$cleanPhone,'
+            'phone_number_3.eq.+967$cleanPhone',
+          )
           .maybeSingle();
-
-      // إذا لم نجد، نحاول مع الرمز الدولي
-      if (response == null) {
-        response = await _client
-            .from('donors')
-            .select()
-            .eq('phone_number', '+967$cleanPhone')
-            .maybeSingle();
-      }
 
       // إذا لم نجد، نحاول بدون صفر أول
       if (response == null && cleanPhone.startsWith('0')) {
@@ -150,7 +152,12 @@ class DonorService {
             .from('donors')
             .select()
             .or(
-              'phone_number.eq.$phoneWithoutZero,phone_number.eq.+967$phoneWithoutZero',
+              'phone_number.eq.$phoneWithoutZero,'
+              'phone_number.eq.+967$phoneWithoutZero,'
+              'phone_number_2.eq.$phoneWithoutZero,'
+              'phone_number_2.eq.+967$phoneWithoutZero,'
+              'phone_number_3.eq.$phoneWithoutZero,'
+              'phone_number_3.eq.+967$phoneWithoutZero',
             )
             .maybeSingle();
       }

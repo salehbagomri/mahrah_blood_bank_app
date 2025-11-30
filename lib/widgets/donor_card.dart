@@ -138,34 +138,70 @@ class _DonorCardElement extends ComponentElement {
                 const SizedBox(height: 12),
                 const Divider(height: 1),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    // زر الاتصال
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _makeCall(widget.donor.phoneNumber),
-                        icon: const Icon(Icons.phone, size: 18),
-                        label: const Text(AppStrings.call),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                
+                // عرض جميع الأرقام مع أزرار الاتصال
+                ...widget.donor.allPhoneNumbers.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final phone = entry.value;
+                  final label = index == 0 
+                      ? 'رقم رئيسي' 
+                      : 'رقم ${index + 1}';
+                  
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: index < widget.donor.allPhoneNumbers.length - 1 ? 8 : 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // عرض الرقم مع التسمية
+                        Row(
+                          children: [
+                            Icon(
+                              index == 0 ? Icons.phone : Icons.phone_android,
+                              size: 14,
+                              color: AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '$label: $phone',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // زر واتساب
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _openWhatsApp(widget.donor.phoneNumber),
-                        icon: const Icon(Icons.message, size: 18),
-                        label: const Text(AppStrings.whatsapp),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF25D366),
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        const SizedBox(height: 6),
+                        // أزرار الإجراءات لهذا الرقم
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => _makeCall(phone),
+                                icon: const Icon(Icons.phone, size: 16),
+                                label: const Text(AppStrings.call, style: TextStyle(fontSize: 13)),
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () => _openWhatsApp(phone),
+                                icon: const Icon(Icons.message, size: 16),
+                                label: const Text(AppStrings.whatsapp, style: TextStyle(fontSize: 13)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF25D366),
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                }).toList(),
               ],
             ],
           ),

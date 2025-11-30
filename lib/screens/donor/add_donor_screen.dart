@@ -26,6 +26,8 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
   // Controllers
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _phone2Controller = TextEditingController();
+  final _phone3Controller = TextEditingController();
   final _ageController = TextEditingController();
   final _notesController = TextEditingController();
   
@@ -46,6 +48,8 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _phone2Controller.dispose();
+    _phone3Controller.dispose();
     _ageController.dispose();
     _notesController.dispose();
     super.dispose();
@@ -112,10 +116,10 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
                   
                   const SizedBox(height: 16),
                   
-                  // رقم الهاتف
+                  // رقم الهاتف الرئيسي
                   CustomTextField(
                     controller: _phoneController,
-                    label: AppStrings.phoneNumber,
+                    label: '${AppStrings.phoneNumber} (رئيسي)',
                     hint: '777123456',
                     icon: Icons.phone,
                     keyboardType: TextInputType.phone,
@@ -124,6 +128,36 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
                       LengthLimitingTextInputFormatter(9),
                     ],
                     validator: Validators.validatePhoneNumber,
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // رقم الهاتف الإضافي 1
+                  CustomTextField(
+                    controller: _phone2Controller,
+                    label: '${AppStrings.phoneNumber} 2 (${AppStrings.optional})',
+                    hint: '777123456',
+                    icon: Icons.phone_android,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(9),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // رقم الهاتف الإضافي 2
+                  CustomTextField(
+                    controller: _phone3Controller,
+                    label: '${AppStrings.phoneNumber} 3 (${AppStrings.optional})',
+                    hint: '777123456',
+                    icon: Icons.phone_iphone,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(9),
+                    ],
                   ),
                   
                   const SizedBox(height: 16),
@@ -255,14 +289,22 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
     // إخفاء لوحة المفاتيح
     FocusScope.of(context).unfocus();
 
-    // تنسيق رقم الهاتف
+    // تنسيق أرقام الهواتف
     final formattedPhone = Helpers.formatPhoneNumber(_phoneController.text);
+    final formattedPhone2 = _phone2Controller.text.trim().isEmpty
+        ? null
+        : Helpers.formatPhoneNumber(_phone2Controller.text);
+    final formattedPhone3 = _phone3Controller.text.trim().isEmpty
+        ? null
+        : Helpers.formatPhoneNumber(_phone3Controller.text);
 
     // إنشاء كائن المتبرع
     final donor = DonorModel(
       id: '', // سيتم إنشاؤه تلقائياً في قاعدة البيانات
       name: _nameController.text.trim(),
       phoneNumber: formattedPhone,
+      phoneNumber2: formattedPhone2,
+      phoneNumber3: formattedPhone3,
       bloodType: _selectedBloodType!,
       district: _selectedDistrict!,
       age: int.parse(_ageController.text),
