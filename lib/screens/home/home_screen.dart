@@ -211,10 +211,25 @@ class _HomeScreenState extends State<HomeScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(24),
                 child: CarouselSlider(
-                  items: slides.map((slide) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeOutCubic,
+                  items: slides.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final slide = entry.value;
+                    return TweenAnimationBuilder<double>(
+                      tween: Tween(
+                        begin: 0.0,
+                        end: _currentSlideIndex == index ? 1.0 : 0.0,
+                      ),
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeInOutQuart,
+                      builder: (context, value, child) {
+                        return Opacity(
+                          opacity: value.clamp(0.3, 1.0),
+                          child: Transform.scale(
+                            scale: 0.95 + (value * 0.05),
+                            child: child,
+                          ),
+                        );
+                      },
                       child: slide,
                     );
                   }).toList(),
@@ -226,8 +241,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     enableInfiniteScroll: true,
                     autoPlay: true,
                     autoPlayInterval: const Duration(seconds: 6),
-                    autoPlayAnimationDuration: const Duration(milliseconds: 1000),
-                    autoPlayCurve: Curves.fastOutSlowIn,
+                    autoPlayAnimationDuration: const Duration(
+                      milliseconds: 800,
+                    ),
+                    autoPlayCurve: Curves.easeInOutQuart,
                     scrollPhysics: const BouncingScrollPhysics(),
                     pageSnapping: true,
                     padEnds: false,
@@ -241,37 +258,40 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               // النقاط كطبقة فوق الكارد
               Positioned(
-                bottom: 8,
+                bottom: 6,
                 left: 0,
                 right: 0,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.25),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: AnimatedSmoothIndicator(
-                      activeIndex: _currentSlideIndex,
-                      count: slides.length,
-                      effect: WormEffect(
-                        dotHeight: 8,
-                        dotWidth: 8,
-                        spacing: 6,
-                        activeDotColor: Colors.white,
-                        dotColor: Colors.white.withOpacity(0.5),
-                        paintStyle: PaintingStyle.fill,
+                child: IgnorePointer(
+                  ignoring: false,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                      onDotClicked: (index) {
-                        _carouselController.animateToPage(
-                          index,
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeInOutCubic,
-                        );
-                      },
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: AnimatedSmoothIndicator(
+                        activeIndex: _currentSlideIndex,
+                        count: slides.length,
+                        effect: WormEffect(
+                          dotHeight: 8,
+                          dotWidth: 8,
+                          spacing: 6,
+                          activeDotColor: Colors.white,
+                          dotColor: Colors.white.withOpacity(0.5),
+                          paintStyle: PaintingStyle.fill,
+                        ),
+                        onDotClicked: (index) {
+                          _carouselController.animateToPage(
+                            index,
+                            duration: const Duration(milliseconds: 600),
+                            curve: Curves.easeInOutQuart,
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
