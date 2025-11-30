@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../models/donor_model.dart';
 import '../../providers/donor_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/donor_card.dart';
 import '../donor/add_donor_screen.dart';
 
 /// شاشة إدارة المتبرعين (للمستشفى) - محسّنة
@@ -459,10 +459,7 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
             itemCount: filteredDonors.length,
             itemBuilder: (context, index) {
               final donor = filteredDonors[index];
-              return DonorCard(
-                donor: donor,
-                showActions: true,
-              );
+              return _ExpandableDonorCard(donor: donor);
             },
           ),
         );
@@ -581,6 +578,475 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
       _selectedStatus = 'all';
       _searchController.clear();
     });
+  }
+
+  /// لون فصيلة الدم
+  Color _getBloodTypeColor(String bloodType) {
+    if (bloodType.contains('A') && !bloodType.contains('AB')) {
+      return AppColors.bloodTypeA;
+    }
+    if (bloodType.contains('B') && !bloodType.contains('AB')) {
+      return AppColors.bloodTypeB;
+    }
+    if (bloodType.contains('AB')) return AppColors.bloodTypeAB;
+    if (bloodType.contains('O')) return AppColors.bloodTypeO;
+    return AppColors.primary;
+  }
+}
+
+/// كارد المتبرع القابل للطي
+class _ExpandableDonorCard extends StatefulWidget {
+  final DonorModel donor;
+
+  const _ExpandableDonorCard({required this.donor});
+
+  @override
+  State<_ExpandableDonorCard> createState() => _ExpandableDonorCardState();
+}
+
+class _ExpandableDonorCardState extends State<_ExpandableDonorCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _isExpanded = !_isExpanded;
+          });
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // الجزء المرئي دائماً (مطوي)
+              _buildCollapsedContent(),
+              
+              // الجزء القابل للتوسع
+              if (_isExpanded) ...[
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 16),
+                _buildExpandedContent(),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// المحتوى المطوي (يظهر دائماً)
+  Widget _buildCollapsedContent() {
+    return Row(
+      children: [
+        // فصيلة الدم
+        Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: _getBloodTypeColor(widget.donor.bloodType),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+            child: Text(
+              widget.donor.bloodType,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+        
+        const SizedBox(width: 12),
+        
+        // المعلومات الأساسية
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // الاسم
+              Text(
+                widget.donor.name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              
+              const SizedBox(height: 6),
+              
+              // العمر والجنس والمديرية
+              Wrap(
+                spacing: 12,
+                runSpacing: 4,
+                children: [
+                  _buildInfoChip(
+                    Icons.cake_outlined,
+                    '${widget.donor.age} سنة',
+                  ),
+                  _buildInfoChip(
+                    widget.donor.gender == 'male' ? Icons.male : Icons.female,
+                    widget.donor.gender == 'male' ? 'ذكر' : 'أنثى',
+                  ),
+                  _buildInfoChip(
+                    Icons.location_on_outlined,
+                    widget.donor.district,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        
+        // سهم التوسع ومؤشر الحالة
+        Column(
+          children: [
+            // مؤشر الحالة
+            if (widget.donor.isSuspended)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.warning.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'موقوف',
+                  style: TextStyle(
+                    color: AppColors.warning,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'متاح',
+                  style: TextStyle(
+                    color: AppColors.success,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            
+            const SizedBox(height: 8),
+            
+            // سهم التوسع
+            Icon(
+              _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+              color: AppColors.primary,
+              size: 28,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// المحتوى الموسع (يظهر عند الفتح)
+  Widget _buildExpandedContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // رقم الهاتف الأساسي
+        _buildDetailRow(
+          Icons.phone,
+          'رقم الهاتف',
+          widget.donor.phoneNumber,
+        ),
+        
+        // الأرقام الإضافية
+        if (widget.donor.phoneNumber2 != null) ...[
+          const SizedBox(height: 8),
+          _buildDetailRow(
+            Icons.phone,
+            'رقم إضافي 2',
+            widget.donor.phoneNumber2!,
+          ),
+        ],
+        
+        if (widget.donor.phoneNumber3 != null) ...[
+          const SizedBox(height: 8),
+          _buildDetailRow(
+            Icons.phone,
+            'رقم إضافي 3',
+            widget.donor.phoneNumber3!,
+          ),
+        ],
+        
+        // آخر تبرع
+        if (widget.donor.lastDonationDate != null) ...[
+          const SizedBox(height: 8),
+          _buildDetailRow(
+            Icons.history,
+            'آخر تبرع',
+            _formatDate(widget.donor.lastDonationDate!),
+          ),
+        ],
+        
+        // تاريخ الإيقاف
+        if (widget.donor.isSuspended && widget.donor.suspendedUntil != null) ...[
+          const SizedBox(height: 8),
+          _buildDetailRow(
+            Icons.pause_circle,
+            'موقوف حتى',
+            _formatDate(widget.donor.suspendedUntil!),
+            valueColor: AppColors.warning,
+          ),
+        ],
+        
+        // الملاحظات
+        if (widget.donor.notes != null && widget.donor.notes!.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _buildDetailRow(
+            Icons.notes,
+            'ملاحظات',
+            widget.donor.notes!,
+          ),
+        ],
+        
+        const SizedBox(height: 16),
+        
+        // الأزرار
+        _buildActions(),
+      ],
+    );
+  }
+
+  /// معلومة صغيرة (chip)
+  Widget _buildInfoChip(IconData icon, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 14,
+          color: AppColors.textSecondary,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// صف معلومات مفصل
+  Widget _buildDetailRow(
+    IconData icon,
+    String label,
+    String value, {
+    Color? valueColor,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 18,
+          color: AppColors.textSecondary,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: valueColor ?? AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// أزرار الإجراءات
+  Widget _buildActions() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        // زر الاتصال
+        ElevatedButton.icon(
+          onPressed: () => _makePhoneCall(widget.donor.phoneNumber),
+          icon: const Icon(Icons.phone, size: 16),
+          label: const Text('اتصال'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.success,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+        ),
+        
+        // زر واتساب
+        ElevatedButton.icon(
+          onPressed: () => _openWhatsApp(widget.donor.phoneNumber, widget.donor.name),
+          icon: const Icon(Icons.chat, size: 16),
+          label: const Text('واتساب'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF25D366),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+        ),
+        
+        // زر إيقاف/تحديث
+        if (!widget.donor.isSuspended)
+          ElevatedButton.icon(
+            onPressed: () => _suspendDonor(context),
+            icon: const Icon(Icons.pause, size: 16),
+            label: const Text('إيقاف 6 أشهر'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.warning,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+          ),
+        
+        // زر تحديث آخر تبرع
+        ElevatedButton.icon(
+          onPressed: () => _updateLastDonation(context),
+          icon: const Icon(Icons.update, size: 16),
+          label: const Text('تحديث التبرع'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.info,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// فتح تطبيق الهاتف
+  void _makePhoneCall(String phoneNumber) async {
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    }
+  }
+
+  /// فتح واتساب
+  void _openWhatsApp(String phoneNumber, String name) async {
+    String formattedNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+    if (!formattedNumber.startsWith('+')) {
+      formattedNumber = '+967$formattedNumber';
+    }
+    
+    final message = Uri.encodeComponent(
+      'السلام عليكم ورحمة الله وبركاته\n'
+      'نأمل منكم التبرع بالدم لإنقاذ حياة إنسان\n'
+      'جزاكم الله خيراً'
+    );
+    
+    final Uri whatsappUri = Uri.parse('https://wa.me/$formattedNumber?text=$message');
+    
+    if (await canLaunchUrl(whatsappUri)) {
+      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  /// إيقاف المتبرع
+  Future<void> _suspendDonor(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('إيقاف المتبرع'),
+        content: Text(
+          'هل تريد إيقاف ${widget.donor.name} لمدة 6 أشهر؟\n\n'
+          'سيتم تسجيل هذا كآخر تبرع.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(AppStrings.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(AppStrings.confirm),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final success = await context.read<DonorProvider>()
+          .suspendDonorFor6Months(widget.donor.id);
+      
+      if (context.mounted && success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم إيقاف المتبرع لمدة 6 أشهر'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    }
+  }
+
+  /// تحديث آخر تبرع
+  Future<void> _updateLastDonation(BuildContext context) async {
+    final updatedDonor = widget.donor.copyWith(
+      lastDonationDate: DateTime.now(),
+    );
+    
+    final success = await context.read<DonorProvider>().updateDonor(updatedDonor);
+    
+    if (context.mounted && success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم تحديث تاريخ آخر تبرع'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    }
+  }
+
+  /// تنسيق التاريخ
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   /// لون فصيلة الدم
