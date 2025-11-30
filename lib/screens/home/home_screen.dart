@@ -208,43 +208,40 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Stack(
             children: [
               // السلايدر
-              CarouselSlider(
-                items: slides.map((slide) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeOutCubic,
-                        child: slide,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                carouselController: _carouselController,
-                options: CarouselOptions(
-                  height: 240,
-                  viewportFraction: 0.93,
-                  enlargeCenterPage: false,
-                  enableInfiniteScroll: true,
-                  autoPlay: true,
-                  autoPlayInterval: const Duration(seconds: 6),
-                  autoPlayAnimationDuration: const Duration(milliseconds: 1000),
-                  autoPlayCurve: Curves.fastOutSlowIn,
-                  scrollPhysics: const BouncingScrollPhysics(),
-                  pageSnapping: true,
-                  padEnds: true,
-                  onPageChanged: (index, reason) {
-                    setState(() {
-                      _currentSlideIndex = index;
-                    });
-                  },
+              ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: CarouselSlider(
+                  items: slides.map((slide) {
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOutCubic,
+                      child: slide,
+                    );
+                  }).toList(),
+                  carouselController: _carouselController,
+                  options: CarouselOptions(
+                    height: 240,
+                    viewportFraction: 1.0,
+                    enlargeCenterPage: false,
+                    enableInfiniteScroll: true,
+                    autoPlay: true,
+                    autoPlayInterval: const Duration(seconds: 6),
+                    autoPlayAnimationDuration: const Duration(milliseconds: 1000),
+                    autoPlayCurve: Curves.fastOutSlowIn,
+                    scrollPhysics: const BouncingScrollPhysics(),
+                    pageSnapping: true,
+                    padEnds: false,
+                    onPageChanged: (index, reason) {
+                      setState(() {
+                        _currentSlideIndex = index;
+                      });
+                    },
+                  ),
                 ),
               ),
               // النقاط كطبقة فوق الكارد
               Positioned(
-                bottom: 10,
+                bottom: 8,
                 left: 0,
                 right: 0,
                 child: Center(
