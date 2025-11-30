@@ -21,7 +21,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final CarouselSliderController _carouselController = CarouselSliderController();
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
   int _currentSlideIndex = 0;
 
   @override
@@ -208,20 +209,45 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               // السلايدر
               ClipRRect(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
                 child: CarouselSlider(
-                  items: slides,
+                  items: slides.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final slide = entry.value;
+                    return TweenAnimationBuilder<double>(
+                      tween: Tween(
+                        begin: 0.0,
+                        end: _currentSlideIndex == index ? 1.0 : 0.0,
+                      ),
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeInOutQuart,
+                      builder: (context, value, child) {
+                        return Opacity(
+                          opacity: value.clamp(0.3, 1.0),
+                          child: Transform.scale(
+                            scale: 0.95 + (value * 0.05),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: slide,
+                    );
+                  }).toList(),
                   carouselController: _carouselController,
                   options: CarouselOptions(
-                    height: 220,
+                    height: 240,
                     viewportFraction: 1.0,
                     enlargeCenterPage: false,
                     enableInfiniteScroll: true,
                     autoPlay: true,
-                    autoPlayInterval: const Duration(seconds: 5),
-                    autoPlayAnimationDuration: const Duration(milliseconds: 600),
-                    autoPlayCurve: Curves.easeInOut,
+                    autoPlayInterval: const Duration(seconds: 6),
+                    autoPlayAnimationDuration: const Duration(
+                      milliseconds: 800,
+                    ),
+                    autoPlayCurve: Curves.easeInOutQuart,
                     scrollPhysics: const BouncingScrollPhysics(),
+                    pageSnapping: true,
+                    padEnds: false,
                     onPageChanged: (index, reason) {
                       setState(() {
                         _currentSlideIndex = index;
@@ -230,34 +256,42 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              // النقاط أمام الشريحة (overlay)
+              // النقاط كطبقة فوق الكارد
               Positioned(
-                bottom: 12,
+                bottom: 6,
                 left: 0,
                 right: 0,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: AnimatedSmoothIndicator(
-                      activeIndex: _currentSlideIndex,
-                      count: slides.length,
-                      effect: WormEffect(
-                        dotHeight: 8,
-                        dotWidth: 8,
-                        spacing: 6,
-                        activeDotColor: Colors.white,
-                        dotColor: Colors.white.withOpacity(0.5),
+                child: IgnorePointer(
+                  ignoring: false,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                      onDotClicked: (index) {
-                        _carouselController.animateToPage(index);
-                      },
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: AnimatedSmoothIndicator(
+                        activeIndex: _currentSlideIndex,
+                        count: slides.length,
+                        effect: WormEffect(
+                          dotHeight: 8,
+                          dotWidth: 8,
+                          spacing: 6,
+                          activeDotColor: Colors.white,
+                          dotColor: Colors.white.withOpacity(0.5),
+                          paintStyle: PaintingStyle.fill,
+                        ),
+                        onDotClicked: (index) {
+                          _carouselController.animateToPage(
+                            index,
+                            duration: const Duration(milliseconds: 600),
+                            curve: Curves.easeInOutQuart,
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
