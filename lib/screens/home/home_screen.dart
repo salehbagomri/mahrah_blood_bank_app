@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Future.microtask(() {
       context.read<StatisticsProvider>().loadStatistics();
     });
-    
+
     // Auto-play
     _startAutoPlay();
   }
@@ -221,17 +221,18 @@ class _HomeScreenState extends State<HomeScreen> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: SizedBox(
-                  height: 220,
+                  height: 240,
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 600),
                     switchInCurve: Curves.easeIn,
                     switchOutCurve: Curves.easeOut,
-                    transitionBuilder: (Widget child, Animation<double> animation) {
-                      return FadeTransition(
-                        opacity: animation,
-                        child: child,
-                      );
-                    },
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
                     child: Container(
                       key: ValueKey<int>(_currentSlideIndex),
                       child: slides[_currentSlideIndex],
