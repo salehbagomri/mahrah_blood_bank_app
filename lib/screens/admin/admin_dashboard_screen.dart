@@ -4,7 +4,10 @@ import 'package:provider/provider.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/statistics_provider.dart';
 import '../../services/report_service.dart';
+import '../../services/hospital_service.dart';
+import '../../services/donor_service.dart';
 import 'manage_hospitals_screen.dart';
 import 'review_reports_screen.dart';
 import 'manage_donors_screen.dart';
@@ -20,22 +23,54 @@ class AdminDashboardScreen extends StatefulWidget {
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final _reportService = ReportService();
+  final _hospitalService = HospitalService();
+  final _donorService = DonorService();
+  
   int _pendingReportsCount = 0;
+  int _totalDonors = 0;
+  int _totalHospitals = 0;
+  int _suspendedDonors = 0;
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _loadPendingReportsCount();
+    _loadDashboardData();
   }
 
-  Future<void> _loadPendingReportsCount() async {
+  Future<void> _loadDashboardData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
-      final count = await _reportService.getPendingReportsCount();
-      setState(() {
-        _pendingReportsCount = count;
-      });
+      // تحميل جميع البيانات بالتوازي
+      final results = await Future.wait([
+        _reportService.getPendingReportsCount(),
+        _hospitalService.getHospitalsCount(),
+        _donorService.getAllDonors(),
+        _donorService.getSuspendedDonors(),
+        context.read<StatisticsProvider>().loadStatistics(),
+      ]);
+
+      if (mounted) {
+        setState(() {
+          _pendingReportsCount = results[0] as int;
+          _totalHospitals = results[1] as int;
+          _totalDonors = (results[2] as List).length;
+          _suspendedDonors = (results[3] as List).length;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      // Handle error
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'فشل تحميل البيانات: ${e.toString()}';
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -45,6 +80,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       appBar: AppBar(
         title: const Text(AppStrings.adminDashboard),
         actions: [
+          // زر تحديث
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _isLoading ? null : _loadDashboardData,
+          ),
           // زر تسجيل الخروج
           IconButton(
             icon: const Icon(Icons.logout),
@@ -57,9 +97,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      body: _errorMessage != null
+          ? _buildErrorView()
+          : RefreshIndicator(
+              onRefresh: _loadDashboardData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // معلومات المستخدم
@@ -101,7 +146,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          // TODO: Navigate to reports screen
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ReviewReportsScreen(),
+                            ),
+                          ).then((_) => _loadDashboardData());
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.warning,
@@ -200,26 +249,83 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    _QuickStat(
-                      icon: Icons.people,
-                      label: 'إجمالي المتبرعين',
-                      value: '-',
-                    ),
-                    const Divider(),
-                    _QuickStat(
-                      icon: Icons.local_hospital,
-                      label: 'عدد المستشفيات',
-                      value: '-',
-                    ),
-                    const Divider(),
-                    _QuickStat(
-                      icon: Icons.report,
-                      label: 'البلاغات المعلقة',
-                      value: '$_pendingReportsCount',
-                    ),
+                    if (_isLoading)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    else ...[
+                      _QuickStat(
+                        icon: Icons.people,
+                        label: 'إجمالي المتبرعين',
+                        value: '$_totalDonors',
+                        color: AppColors.success,
+                      ),
+                      const Divider(),
+                      _QuickStat(
+                        icon: Icons.local_hospital,
+                        label: 'عدد المستشفيات',
+                        value: '$_totalHospitals',
+                        color: AppColors.info,
+                      ),
+                      const Divider(),
+                      _QuickStat(
+                        icon: Icons.pause_circle,
+                        label: 'متبرعين موقوفين',
+                        value: '$_suspendedDonors',
+                        color: AppColors.warning,
+                      ),
+                      const Divider(),
+                      _QuickStat(
+                        icon: Icons.report,
+                        label: 'البلاغات المعلقة',
+                        value: '$_pendingReportsCount',
+                        color: _pendingReportsCount > 0 ? AppColors.error : AppColors.success,
+                      ),
+                    ],
                   ],
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+            ),
+    );
+  }
+
+  Widget _buildErrorView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: AppColors.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'حدث خطأ',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _errorMessage ?? 'خطأ غير متوقع',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _loadDashboardData,
+              icon: const Icon(Icons.refresh),
+              label: const Text('إعادة المحاولة'),
             ),
           ],
         ),
@@ -376,11 +482,13 @@ class _QuickStat extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final Color? color;
 
   const _QuickStat({
     required this.icon,
     required this.label,
     required this.value,
+    this.color,
   });
 
   @override
@@ -405,7 +513,7 @@ class _QuickStat extends StatelessWidget {
             value,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                  color: color ?? AppColors.primary,
                 ),
           ),
         ],

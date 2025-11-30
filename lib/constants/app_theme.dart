@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 /// سمة التطبيق الرئيسية
@@ -24,90 +23,104 @@ class AppTheme {
         onError: Colors.white,
       ),
       
-      // الخطوط - استخدام Google Fonts لدعم العربية
-      textTheme: GoogleFonts.ibmPlexSansArabicTextTheme(
-        ThemeData.light().textTheme,
-      ).copyWith(
+      // الخطوط - استخدام خط IBM Plex Sans Arabic المحلي
+      fontFamily: 'IBM Plex Sans Arabic',
+      textTheme: ThemeData.light().textTheme.copyWith(
         // العناوين الكبيرة
-        displayLarge: GoogleFonts.ibmPlexSansArabic(
+        displayLarge: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 32,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
         ),
-        displayMedium: GoogleFonts.ibmPlexSansArabic(
+        displayMedium: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 28,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
         ),
-        displaySmall: GoogleFonts.ibmPlexSansArabic(
+        displaySmall: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 24,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
         ),
         
         // العناوين المتوسطة
-        headlineLarge: GoogleFonts.ibmPlexSansArabic(
+        headlineLarge: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        headlineMedium: GoogleFonts.ibmPlexSansArabic(
+        headlineMedium: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        headlineSmall: GoogleFonts.ibmPlexSansArabic(
+        headlineSmall: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
         
         // العناوين الصغيرة
-        titleLarge: GoogleFonts.ibmPlexSansArabic(
+        titleLarge: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        titleMedium: GoogleFonts.ibmPlexSansArabic(
+        titleMedium: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        titleSmall: GoogleFonts.ibmPlexSansArabic(
+        titleSmall: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
         
         // النصوص العادية
-        bodyLarge: GoogleFonts.ibmPlexSansArabic(
+        bodyLarge: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 16,
-          fontWeight: FontWeight.normal,
+          fontWeight: FontWeight.w400,
           color: AppColors.textPrimary,
         ),
-        bodyMedium: GoogleFonts.ibmPlexSansArabic(
+        bodyMedium: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 14,
-          fontWeight: FontWeight.normal,
+          fontWeight: FontWeight.w400,
           color: AppColors.textPrimary,
         ),
-        bodySmall: GoogleFonts.ibmPlexSansArabic(
+        bodySmall: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 12,
-          fontWeight: FontWeight.normal,
+          fontWeight: FontWeight.w400,
           color: AppColors.textSecondary,
         ),
         
         // الأزرار والتسميات
-        labelLarge: GoogleFonts.ibmPlexSansArabic(
+        labelLarge: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: Colors.white,
         ),
-        labelMedium: GoogleFonts.ibmPlexSansArabic(
+        labelMedium: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 14,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
         ),
-        labelSmall: GoogleFonts.ibmPlexSansArabic(
+        labelSmall: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 12,
           fontWeight: FontWeight.w500,
           color: AppColors.textSecondary,
@@ -134,7 +147,8 @@ class AppTheme {
             borderRadius: BorderRadius.circular(10),
           ),
           elevation: 2,
-          textStyle: GoogleFonts.ibmPlexSansArabic(
+          textStyle: const TextStyle(
+            fontFamily: 'IBM Plex Sans Arabic',
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -150,7 +164,8 @@ class AppTheme {
             borderRadius: BorderRadius.circular(10),
           ),
           side: const BorderSide(color: AppColors.primary, width: 1.5),
-          textStyle: GoogleFonts.ibmPlexSansArabic(
+          textStyle: const TextStyle(
+            fontFamily: 'IBM Plex Sans Arabic',
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -162,7 +177,8 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          textStyle: GoogleFonts.ibmPlexSansArabic(
+          textStyle: const TextStyle(
+            fontFamily: 'IBM Plex Sans Arabic',
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -206,33 +222,37 @@ class AppTheme {
         ),
         
         // أنماط التسميات
-        labelStyle: GoogleFonts.ibmPlexSansArabic(
+        labelStyle: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           color: AppColors.textSecondary,
           fontSize: 14,
         ),
         
         // أنماط النص المساعد
-        hintStyle: GoogleFonts.ibmPlexSansArabic(
+        hintStyle: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           color: AppColors.textHint,
           fontSize: 14,
         ),
         
         // أنماط رسالة الخطأ
-        errorStyle: GoogleFonts.ibmPlexSansArabic(
+        errorStyle: const TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           color: AppColors.error,
           fontSize: 12,
         ),
       ),
       
       // أنماط شريط التطبيق
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: GoogleFonts.ibmPlexSansArabic(
+        titleTextStyle: TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontSize: 20,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           color: Colors.white,
         ),
       ),
@@ -258,17 +278,19 @@ class AppTheme {
       ),
       
       // أنماط Bottom Navigation Bar
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: Colors.white,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
-        selectedLabelStyle: GoogleFonts.ibmPlexSansArabic(
+        selectedLabelStyle: TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
           fontWeight: FontWeight.w600,
         ),
-        unselectedLabelStyle: GoogleFonts.ibmPlexSansArabic(
-          fontWeight: FontWeight.normal,
+        unselectedLabelStyle: TextStyle(
+          fontFamily: 'IBM Plex Sans Arabic',
+          fontWeight: FontWeight.w400,
         ),
       ),
     );

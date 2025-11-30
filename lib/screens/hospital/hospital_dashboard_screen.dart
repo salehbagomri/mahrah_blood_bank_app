@@ -6,8 +6,12 @@ import '../../constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/donor_provider.dart';
 import '../../widgets/loading_widget.dart';
+import '../../services/donor_service.dart';
+import '../donor/add_donor_screen.dart';
 import 'manage_donors_hospital_screen.dart';
 import 'suspended_donors_screen.dart';
+import 'advanced_search_screen.dart';
+import 'blood_type_report_screen.dart';
 
 /// لوحة إدارة المستشفى
 class HospitalDashboardScreen extends StatefulWidget {
@@ -18,13 +22,39 @@ class HospitalDashboardScreen extends StatefulWidget {
 }
 
 class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
+  final _donorService = DonorService();
+  int _totalDonors = 0;
+  int _suspendedDonors = 0;
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
-    // تحميل جميع المتبرعين
-    Future.microtask(() {
-      context.read<DonorProvider>().loadDonors();
-    });
+    _loadDashboardData();
+  }
+
+  Future<void> _loadDashboardData() async {
+    setState(() => _isLoading = true);
+    
+    try {
+      // تحميل جميع البيانات
+      final results = await Future.wait([
+        context.read<DonorProvider>().loadDonors(),
+        _donorService.getSuspendedDonors(),
+      ]);
+
+      if (mounted) {
+        setState(() {
+          _totalDonors = context.read<DonorProvider>().donors.length;
+          _suspendedDonors = (results[1] as List).length;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -33,6 +63,11 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
       appBar: AppBar(
         title: const Text(AppStrings.hospitalDashboard),
         actions: [
+          // زر تحديث
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadDashboardData,
+          ),
           // زر تسجيل الخروج
           IconButton(
             icon: const Icon(Icons.logout),
@@ -45,13 +80,44 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: _loadDashboardData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // معلومات المستخدم
             _UserInfoCard(),
+            
+            const SizedBox(height: 20),
+            
+            // إحصائيات سريعة
+            if (!_isLoading)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _QuickStat(
+                        icon: Icons.people,
+                        label: 'المتبرعين',
+                        value: '$_totalDonors',
+                        color: AppColors.success,
+                      ),
+                      Container(width: 1, height: 40, color: AppColors.divider),
+                      _QuickStat(
+                        icon: Icons.pause_circle,
+                        label: 'موقوفين',
+                        value: '$_suspendedDonors',
+                        color: AppColors.warning,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             
             const SizedBox(height: 20),
             
@@ -79,7 +145,11 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
                     title: AppStrings.advancedSearch,
                     color: AppColors.info,
                     onTap: () {
-                      // TODO: Navigate to advanced search screen
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const AdvancedSearchScreen(),
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -111,7 +181,11 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
                     title: AppStrings.bloodTypeReport,
                     color: AppColors.success,
                     onTap: () {
-                      // TODO: Navigate to blood type report screen
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const BloodTypeReportScreen(),
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -192,6 +266,18 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
             ),
           ],
         ),
+          ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const AddDonorScreen(),
+            ),
+          ).then((_) => _loadDashboardData());
+        },
+        icon: const Icon(Icons.person_add),
+        label: const Text('إضافة متبرع'),
       ),
     );
   }
@@ -293,6 +379,44 @@ class _UserInfoCard extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// إحصائية سريعة
+class _QuickStat extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  const _QuickStat({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 32),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+        ),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+        ),
+      ],
     );
   }
 }

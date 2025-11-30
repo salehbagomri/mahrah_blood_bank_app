@@ -5,6 +5,7 @@ import '../../models/hospital_model.dart';
 import '../../services/hospital_service.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
+import 'add_hospital_screen.dart';
 
 /// شاشة إدارة المستشفيات (للأدمن)
 class ManageHospitalsScreen extends StatefulWidget {
@@ -61,7 +62,15 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
       body: _buildBody(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          _showAddHospitalDialog();
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const AddHospitalScreen(),
+            ),
+          ).then((result) {
+            if (result == true) {
+              _loadHospitals();
+            }
+          });
         },
         icon: const Icon(Icons.add),
         label: const Text('إضافة مستشفى'),
@@ -90,7 +99,17 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
         title: 'لا توجد مستشفيات',
         message: 'لم يتم إضافة أي مستشفى بعد',
         actionLabel: 'إضافة مستشفى',
-        onAction: _showAddHospitalDialog,
+        onAction: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const AddHospitalScreen(),
+            ),
+          ).then((result) {
+            if (result == true) {
+              _loadHospitals();
+            }
+          });
+        },
       );
     }
 
@@ -188,30 +207,6 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
     }
   }
 
-  void _showAddHospitalDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('إضافة مستشفى'),
-        content: const Text(
-          'لإضافة مستشفى جديد:\n\n'
-          '1. اذهب إلى Supabase Dashboard\n'
-          '2. Authentication > Users > Add user\n'
-          '3. أنشئ المستخدم\n'
-          '4. انسخ User UID\n'
-          '5. نفّذ:\n\n'
-          'INSERT INTO hospitals (id, name, email, district)\n'
-          'VALUES (\'UID\', \'الاسم\', \'البريد\', \'المديرية\');',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('حسناً'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showEditHospitalDialog(HospitalModel hospital) {
     showDialog(

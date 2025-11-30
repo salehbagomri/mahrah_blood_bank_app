@@ -50,24 +50,21 @@ class MahrahBloodBankApp extends StatelessWidget {
       child: MaterialApp(
         title: AppStrings.appName,
         debugShowCheckedModeBanner: false,
-        
+
         // السمة
         theme: AppTheme.lightTheme,
-        
+
         // اللغة والاتجاه
         locale: const Locale('ar'),
-        supportedLocales: const [
-          Locale('ar'),
-          Locale('en'),
-        ],
-        
+        supportedLocales: const [Locale('ar'), Locale('en')],
+
         // Localization delegates
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        
+
         // اتجاه النص (من اليمين لليسار)
         builder: (context, child) {
           return Directionality(
@@ -75,7 +72,7 @@ class MahrahBloodBankApp extends StatelessWidget {
             child: child!,
           );
         },
-        
+
         // الصفحة الرئيسية
         home: const SplashScreen(),
       ),
@@ -112,9 +109,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // الانتقال إلى الصفحة الرئيسية
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
     }
   }
 
@@ -179,9 +176,9 @@ class _SplashScreenState extends State<SplashScreen> {
                   color: Theme.of(context).primaryColor,
                 ),
               ),
-              
+
               const SizedBox(height: 30),
-              
+
               // اسم التطبيق
               Text(
                 AppStrings.appName,
@@ -191,18 +188,18 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
+
               const SizedBox(height: 10),
-              
+
               Text(
                 AppStrings.appNameEnglish,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Colors.white.withOpacity(0.9),
                 ),
               ),
-              
+
               const SizedBox(height: 50),
-              
+
               // مؤشر التحميل
               const CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
