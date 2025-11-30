@@ -22,7 +22,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentSlideIndex = 0;
-  final CarouselSliderController _carouselController = CarouselSliderController();
+  final CarouselSliderController _carouselController =
+      CarouselSliderController();
 
   @override
   void initState() {
@@ -59,12 +60,12 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              
+
               // سلايدر التوعية
               _buildAwarenessSlider(),
-              
+
               const SizedBox(height: 24),
-              
+
               // الأزرار الرئيسية
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -87,9 +88,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // زر إضافة متبرع
                     _MainActionButton(
                       icon: Icons.person_add,
@@ -97,7 +98,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       subtitle: 'أضف نفسك أو شخص آخر كمتبرع',
                       color: AppColors.success,
                       gradient: LinearGradient(
-                        colors: [AppColors.success, AppColors.success.withOpacity(0.7)],
+                        colors: [
+                          AppColors.success,
+                          AppColors.success.withOpacity(0.7),
+                        ],
                       ),
                       onTap: () {
                         Navigator.of(context).push(
@@ -107,9 +111,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // صف الأزرار الصغيرة
                     Row(
                       children: [
@@ -128,9 +132,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                           ),
                         ),
-                        
+
                         const SizedBox(width: 16),
-                        
+
                         // زر الإبلاغ
                         Expanded(
                           child: _SecondaryActionButton(
@@ -148,15 +152,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // كارد تسجيل دخول الإدارة
                     _buildAdminLoginCard(),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 24),
             ],
           ),
@@ -170,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Consumer<StatisticsProvider>(
       builder: (context, provider, _) {
         final totalDonors = provider.statistics?.totalDonors ?? 0;
-        
+
         final slides = [
           _AwarenessSlide(
             icon: Icons.favorite,
@@ -196,30 +200,13 @@ class _HomeScreenState extends State<HomeScreen> {
             description: 'انضم لآلاف المتبرعين واصنع الفرق',
             color: Colors.blue,
           ),
-          _StatisticsSlide(
-            totalDonors: totalDonors,
-          ),
+          _StatisticsSlide(totalDonors: totalDonors),
         ];
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
+          child: Stack(
             children: [
-              // النقاط في الأعلى
-              AnimatedSmoothIndicator(
-                activeIndex: _currentSlideIndex,
-                count: slides.length,
-                effect: WormEffect(
-                  dotHeight: 8,
-                  dotWidth: 8,
-                  activeDotColor: AppColors.primary,
-                  dotColor: AppColors.textHint.withOpacity(0.3),
-                ),
-                onDotClicked: (index) {
-                  _carouselController.animateToPage(index);
-                },
-              ),
-              const SizedBox(height: 12),
               // السلايدر
               CarouselSlider(
                 items: slides,
@@ -240,6 +227,27 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
               ),
+              // النقاط كطبقة فوق الكارد
+              Positioned(
+                bottom: 12,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: AnimatedSmoothIndicator(
+                    activeIndex: _currentSlideIndex,
+                    count: slides.length,
+                    effect: WormEffect(
+                      dotHeight: 8,
+                      dotWidth: 8,
+                      activeDotColor: Colors.white,
+                      dotColor: Colors.white.withOpacity(0.4),
+                    ),
+                    onDotClicked: (index) {
+                      _carouselController.animateToPage(index);
+                    },
+                  ),
+                ),
+              ),
             ],
           ),
         );
@@ -247,16 +255,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
   /// كارد تسجيل دخول الإدارة
   Widget _buildAdminLoginCard() {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Colors.deepPurple.shade400,
-            Colors.deepPurple.shade600,
-          ],
+          colors: [Colors.deepPurple.shade400, Colors.deepPurple.shade600],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -273,11 +277,9 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const LoginScreen(),
-              ),
-            );
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const LoginScreen()));
           },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
@@ -351,6 +353,8 @@ class _AwarenessSlide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
+      height: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [color, color.withOpacity(0.7)],
@@ -372,6 +376,7 @@ class _AwarenessSlide extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
@@ -379,11 +384,7 @@ class _AwarenessSlide extends StatelessWidget {
                   color: Colors.white.withOpacity(0.2),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                  size: 40,
-                ),
+                child: Icon(icon, color: Colors.white, size: 40),
               ),
               const SizedBox(height: 16),
               Text(
@@ -396,15 +397,17 @@ class _AwarenessSlide extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              Text(
-                description,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.95),
-                  fontSize: 14,
+              Flexible(
+                child: Text(
+                  description,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.95),
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -418,13 +421,13 @@ class _AwarenessSlide extends StatelessWidget {
 class _StatisticsSlide extends StatelessWidget {
   final int totalDonors;
 
-  const _StatisticsSlide({
-    required this.totalDonors,
-  });
+  const _StatisticsSlide({required this.totalDonors});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
+      height: double.infinity,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppColors.primary, AppColors.primaryDark],
@@ -446,6 +449,7 @@ class _StatisticsSlide extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
                 padding: const EdgeInsets.all(16),
@@ -454,49 +458,33 @@ class _StatisticsSlide extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
-                  Icons.analytics,
+                  Icons.military_tech,
                   color: Colors.white,
                   size: 40,
                 ),
               ),
               const SizedBox(height: 16),
               const Text(
-                'إحصائيات المتبرعين',
+                'أبطال المهرة',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 18,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.people,
-                    color: Colors.white,
-                    size: 32,
+              Flexible(
+                child: Text(
+                  'هناك $totalDonors بطل تبرع بدمه لينقذ حياة',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.95),
+                    fontSize: 15,
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    '$totalDonors',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'متبرع مسجل في النظام',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.95),
-                  fontSize: 14,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -554,15 +542,11 @@ class _MainActionButton extends StatelessWidget {
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    icon,
-                    color: Colors.white,
-                    size: 30,
-                  ),
+                  child: Icon(icon, color: Colors.white, size: 30),
                 ),
-                
+
                 const SizedBox(width: 16),
-                
+
                 // النصوص
                 Expanded(
                   child: Column(
@@ -587,7 +571,7 @@ class _MainActionButton extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 // سهم
                 Icon(
                   Icons.arrow_forward_ios,
@@ -647,11 +631,7 @@ class _SecondaryActionButton extends StatelessWidget {
                     color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 28,
-                  ),
+                  child: Icon(icon, color: color, size: 28),
                 ),
                 const SizedBox(height: 12),
                 Text(
