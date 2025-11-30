@@ -38,7 +38,6 @@ dependencies:
   flutter_spinkit: ^5.2.1
   
   # Carousel slider for awareness section
-  carousel_slider: ^5.1.1
   
   # Smooth page indicator
   smooth_page_indicator: ^1.2.1

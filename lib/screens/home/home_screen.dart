@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../constants/app_colors.dart';
@@ -21,9 +20,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentSlideIndex = 0;
-  final CarouselSliderController _carouselController =
-      CarouselSliderController();
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
 
   @override
   void initState() {
@@ -31,6 +29,30 @@ class _HomeScreenState extends State<HomeScreen> {
     // تحميل الإحصائيات عند فتح التطبيق
     Future.microtask(() {
       context.read<StatisticsProvider>().loadStatistics();
+    });
+    
+    // Auto-scroll
+    _startAutoScroll();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _startAutoScroll() {
+    Future.delayed(const Duration(seconds: 5), () {
+      if (!mounted) return;
+      
+      final nextPage = (_currentPage + 1) % 5;
+      _pageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+      
+      _startAutoScroll();
     });
   }
 
@@ -175,126 +197,84 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, provider, _) {
         final totalDonors = provider.statistics?.totalDonors ?? 0;
 
-        final slides = [
-          _AwarenessSlide(
-            icon: Icons.favorite,
-            title: 'التبرع بالدم ينقذ الأرواح',
-            description: 'كل تبرع بالدم يمكن أن ينقذ حياة ثلاثة أشخاص',
-            color: Colors.red,
-          ),
-          _AwarenessSlide(
-            icon: Icons.health_and_safety,
-            title: 'فوائد التبرع بالدم',
-            description: 'التبرع بالدم يحسن صحتك ويجدد خلايا الدم',
-            color: Colors.green,
-          ),
-          _AwarenessSlide(
-            icon: Icons.timer,
-            title: 'كل 3 ثواني',
-            description: 'يحتاج شخص ما إلى نقل دم كل 3 ثواني',
-            color: Colors.orange,
-          ),
-          _AwarenessSlide(
-            icon: Icons.people,
-            title: 'كن بطلاً',
-            description: 'انضم لآلاف المتبرعين واصنع الفرق',
-            color: Colors.blue,
-          ),
-          _StatisticsSlide(totalDonors: totalDonors),
-        ];
-
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Stack(
+          child: Column(
             children: [
               // السلايدر
-              ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: CarouselSlider(
-                  items: slides.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final slide = entry.value;
-                    return TweenAnimationBuilder<double>(
-                      tween: Tween(
-                        begin: 0.0,
-                        end: _currentSlideIndex == index ? 1.0 : 0.0,
-                      ),
-                      duration: const Duration(milliseconds: 600),
-                      curve: Curves.easeInOutQuart,
-                      builder: (context, value, child) {
-                        return Opacity(
-                          opacity: value.clamp(0.3, 1.0),
-                          child: Transform.scale(
-                            scale: 0.95 + (value * 0.05),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: slide,
-                    );
-                  }).toList(),
-                  carouselController: _carouselController,
-                  options: CarouselOptions(
-                    height: 240,
-                    viewportFraction: 1.0,
-                    enlargeCenterPage: false,
-                    enableInfiniteScroll: true,
-                    autoPlay: true,
-                    autoPlayInterval: const Duration(seconds: 6),
-                    autoPlayAnimationDuration: const Duration(
-                      milliseconds: 800,
+              Container(
+                height: 220,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
-                    autoPlayCurve: Curves.easeInOutQuart,
-                    scrollPhysics: const BouncingScrollPhysics(),
-                    pageSnapping: true,
-                    padEnds: false,
-                    onPageChanged: (index, reason) {
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: (index) {
                       setState(() {
-                        _currentSlideIndex = index;
+                        _currentPage = index;
                       });
                     },
+                    children: [
+                      _AwarenessSlide(
+                        icon: Icons.favorite,
+                        title: 'التبرع بالدم ينقذ الأرواح',
+                        description: 'كل تبرع بالدم يمكن أن ينقذ حياة ثلاثة أشخاص',
+                        color: Colors.red.shade600,
+                      ),
+                      _AwarenessSlide(
+                        icon: Icons.health_and_safety,
+                        title: 'فوائد التبرع بالدم',
+                        description: 'التبرع بالدم يحسن صحتك ويجدد خلايا الدم',
+                        color: Colors.green.shade600,
+                      ),
+                      _AwarenessSlide(
+                        icon: Icons.timer,
+                        title: 'كل 3 ثواني',
+                        description: 'يحتاج شخص ما إلى نقل دم كل 3 ثواني',
+                        color: Colors.orange.shade600,
+                      ),
+                      _AwarenessSlide(
+                        icon: Icons.people,
+                        title: 'كن بطلاً',
+                        description: 'انضم لآلاف المتبرعين واصنع الفرق',
+                        color: Colors.blue.shade600,
+                      ),
+                      _StatisticsSlide(totalDonors: totalDonors),
+                    ],
                   ),
                 ),
               ),
-              // النقاط كطبقة فوق الكارد
-              Positioned(
-                bottom: 6,
-                left: 0,
-                right: 0,
-                child: IgnorePointer(
-                  ignoring: false,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: AnimatedSmoothIndicator(
-                        activeIndex: _currentSlideIndex,
-                        count: slides.length,
-                        effect: WormEffect(
-                          dotHeight: 8,
-                          dotWidth: 8,
-                          spacing: 6,
-                          activeDotColor: Colors.white,
-                          dotColor: Colors.white.withOpacity(0.5),
-                          paintStyle: PaintingStyle.fill,
-                        ),
-                        onDotClicked: (index) {
-                          _carouselController.animateToPage(
-                            index,
-                            duration: const Duration(milliseconds: 600),
-                            curve: Curves.easeInOutQuart,
-                          );
-                        },
-                      ),
-                    ),
-                  ),
+              
+              const SizedBox(height: 12),
+              
+              // المؤشرات
+              SmoothPageIndicator(
+                controller: _pageController,
+                count: 5,
+                effect: WormEffect(
+                  dotHeight: 10,
+                  dotWidth: 10,
+                  spacing: 8,
+                  activeDotColor: AppColors.primary,
+                  dotColor: AppColors.textHint.withOpacity(0.3),
+                  type: WormType.thin,
                 ),
+                onDotClicked: (index) {
+                  _pageController.animateToPage(
+                    index,
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeInOut,
+                  );
+                },
               ),
             ],
           ),
