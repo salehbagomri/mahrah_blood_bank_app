@@ -26,74 +26,91 @@ class AppTheme {
       
       // الخطوط - استخدام Google Fonts لدعم العربية
       textTheme: GoogleFonts.ibmPlexSansArabicTextTheme(
-        TextTheme(
-          // العناوين الكبيرة
-          displayLarge: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-          displayMedium: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-          displaySmall: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-          
-          // العناوين المتوسطة
-          headlineLarge: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-          headlineMedium: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-          headlineSmall: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-          
-          // النصوص العادية
-          bodyLarge: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.normal,
-            color: AppColors.textPrimary,
-          ),
-          bodyMedium: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.normal,
-            color: AppColors.textPrimary,
-          ),
-          bodySmall: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.normal,
-            color: AppColors.textSecondary,
-          ),
-          
-          // الأزرار والتسميات
-          labelLarge: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-          labelMedium: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
-          ),
-          labelSmall: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
-          ),
+        ThemeData.light().textTheme,
+      ).copyWith(
+        // العناوين الكبيرة
+        displayLarge: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        displayMedium: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        displaySmall: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        
+        // العناوين المتوسطة
+        headlineLarge: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        headlineMedium: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        headlineSmall: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        
+        // العناوين الصغيرة
+        titleLarge: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        titleMedium: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        titleSmall: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        
+        // النصوص العادية
+        bodyLarge: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 16,
+          fontWeight: FontWeight.normal,
+          color: AppColors.textPrimary,
+        ),
+        bodyMedium: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 14,
+          fontWeight: FontWeight.normal,
+          color: AppColors.textPrimary,
+        ),
+        bodySmall: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 12,
+          fontWeight: FontWeight.normal,
+          color: AppColors.textSecondary,
+        ),
+        
+        // الأزرار والتسميات
+        labelLarge: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+        labelMedium: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textPrimary,
+        ),
+        labelSmall: GoogleFonts.ibmPlexSansArabic(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textSecondary,
         ),
       ),
       
@@ -117,7 +134,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(10),
           ),
           elevation: 2,
-          textStyle: const TextStyle(
+          textStyle: GoogleFonts.ibmPlexSansArabic(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -133,7 +150,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(10),
           ),
           side: const BorderSide(color: AppColors.primary, width: 1.5),
-          textStyle: const TextStyle(
+          textStyle: GoogleFonts.ibmPlexSansArabic(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -145,7 +162,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          textStyle: const TextStyle(
+          textStyle: GoogleFonts.ibmPlexSansArabic(
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -189,19 +206,19 @@ class AppTheme {
         ),
         
         // أنماط التسميات
-        labelStyle: const TextStyle(
+        labelStyle: GoogleFonts.ibmPlexSansArabic(
           color: AppColors.textSecondary,
           fontSize: 14,
         ),
         
         // أنماط النص المساعد
-        hintStyle: const TextStyle(
+        hintStyle: GoogleFonts.ibmPlexSansArabic(
           color: AppColors.textHint,
           fontSize: 14,
         ),
         
         // أنماط رسالة الخطأ
-        errorStyle: const TextStyle(
+        errorStyle: GoogleFonts.ibmPlexSansArabic(
           color: AppColors.error,
           fontSize: 12,
         ),
@@ -241,13 +258,18 @@ class AppTheme {
       ),
       
       // أنماط Bottom Navigation Bar
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: Colors.white,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
-        selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
+        selectedLabelStyle: GoogleFonts.ibmPlexSansArabic(
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: GoogleFonts.ibmPlexSansArabic(
+          fontWeight: FontWeight.normal,
+        ),
       ),
     );
   }
