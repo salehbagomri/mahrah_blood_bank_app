@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../constants/app_colors.dart';
@@ -21,8 +20,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final CarouselSliderController _carouselController =
-      CarouselSliderController();
   int _currentSlideIndex = 0;
 
   @override
@@ -31,6 +28,19 @@ class _HomeScreenState extends State<HomeScreen> {
     // تحميل الإحصائيات عند فتح التطبيق
     Future.microtask(() {
       context.read<StatisticsProvider>().loadStatistics();
+    });
+    
+    // Auto-play
+    _startAutoPlay();
+  }
+
+  void _startAutoPlay() {
+    Future.delayed(const Duration(seconds: 5), () {
+      if (!mounted) return;
+      setState(() {
+        _currentSlideIndex = (_currentSlideIndex + 1) % 5;
+      });
+      _startAutoPlay();
     });
   }
 
@@ -207,34 +217,31 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Stack(
             children: [
-              // السلايدر
+              // السلايدر مع fade transition
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: CarouselSlider(
-                  items: slides,
-                  carouselController: _carouselController,
-                  options: CarouselOptions(
-                    height: 220,
-                    viewportFraction: 1.0,
-                    enlargeCenterPage: false,
-                    enableInfiniteScroll: true,
-                    autoPlay: true,
-                    autoPlayInterval: const Duration(seconds: 5),
-                    autoPlayAnimationDuration: const Duration(milliseconds: 500),
-                    autoPlayCurve: Curves.fastOutSlowIn,
-                    scrollPhysics: const BouncingScrollPhysics(),
-                    pageSnapping: true,
-                    onPageChanged: (index, reason) {
-                      setState(() {
-                        _currentSlideIndex = index;
-                      });
+                child: SizedBox(
+                  height: 220,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 600),
+                    switchInCurve: Curves.easeIn,
+                    switchOutCurve: Curves.easeOut,
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: child,
+                      );
                     },
+                    child: Container(
+                      key: ValueKey<int>(_currentSlideIndex),
+                      child: slides[_currentSlideIndex],
+                    ),
                   ),
                 ),
               ),
-              // النقاط كطبقة فوق الكارد
+              // النقاط ملتصقة بالحافة السفلية
               Positioned(
-                bottom: 10,
+                bottom: 6,
                 left: 0,
                 right: 0,
                 child: Center(
@@ -258,11 +265,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         dotColor: Colors.white.withOpacity(0.5),
                       ),
                       onDotClicked: (index) {
-                        _carouselController.animateToPage(
-                          index,
-                          duration: const Duration(milliseconds: 400),
-                          curve: Curves.easeInOutCubic,
-                        );
+                        setState(() {
+                          _currentSlideIndex = index;
+                        });
                       },
                     ),
                   ),
@@ -391,7 +396,7 @@ class _AwarenessSlide extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        padding: const EdgeInsets.fromLTRB(28, 24, 28, 50),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -412,7 +417,7 @@ class _AwarenessSlide extends StatelessWidget {
               ),
               child: Icon(icon, color: Colors.white, size: 48),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             // العنوان
             Text(
               title,
@@ -424,20 +429,18 @@ class _AwarenessSlide extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             // الوصف
-            Flexible(
-              child: Text(
-                description,
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.95),
-                  fontSize: 15,
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
+            Text(
+              description,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.95),
+                fontSize: 15,
+                height: 1.4,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -473,7 +476,7 @@ class _StatisticsSlide extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        padding: const EdgeInsets.fromLTRB(28, 24, 28, 50),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -498,7 +501,7 @@ class _StatisticsSlide extends StatelessWidget {
                 size: 48,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             // العنوان الرئيسي
             const Text(
               'أبطال المهرة',
@@ -510,20 +513,18 @@ class _StatisticsSlide extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             // الوصف مع العدد
-            Flexible(
-              child: Text(
-                'هناك $totalDonors بطل تبرع بدمه لينقذ حياة',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.95),
-                  fontSize: 16,
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
+            Text(
+              'هناك $totalDonors بطل تبرع بدمه لينقذ حياة',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.95),
+                fontSize: 16,
+                height: 1.4,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
