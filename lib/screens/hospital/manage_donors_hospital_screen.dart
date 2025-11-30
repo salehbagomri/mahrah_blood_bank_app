@@ -772,67 +772,68 @@ class _ExpandableDonorCardState extends State<_ExpandableDonorCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // رقم الهاتف الأساسي
-        _buildDetailRow(
-          Icons.phone,
-          'رقم الهاتف',
+        // أرقام الهواتف مع أزرار الإجراءات
+        _buildPhoneNumberRow(
+          'رقم الهاتف الأساسي',
           widget.donor.phoneNumber,
         ),
         
-        // الأرقام الإضافية
         if (widget.donor.phoneNumber2 != null) ...[
-          const SizedBox(height: 8),
-          _buildDetailRow(
-            Icons.phone,
+          const SizedBox(height: 12),
+          _buildPhoneNumberRow(
             'رقم إضافي 2',
             widget.donor.phoneNumber2!,
           ),
         ],
         
         if (widget.donor.phoneNumber3 != null) ...[
-          const SizedBox(height: 8),
-          _buildDetailRow(
-            Icons.phone,
+          const SizedBox(height: 12),
+          _buildPhoneNumberRow(
             'رقم إضافي 3',
             widget.donor.phoneNumber3!,
           ),
         ],
         
+        const SizedBox(height: 16),
+        const Divider(height: 1),
+        const SizedBox(height: 16),
+        
+        // معلومات إضافية
         // آخر تبرع
         if (widget.donor.lastDonationDate != null) ...[
-          const SizedBox(height: 8),
           _buildDetailRow(
             Icons.history,
             'آخر تبرع',
             _formatDate(widget.donor.lastDonationDate!),
           ),
+          const SizedBox(height: 8),
         ],
         
         // تاريخ الإيقاف
         if (widget.donor.isSuspended && widget.donor.suspendedUntil != null) ...[
-          const SizedBox(height: 8),
           _buildDetailRow(
             Icons.pause_circle,
             'موقوف حتى',
             _formatDate(widget.donor.suspendedUntil!),
             valueColor: AppColors.warning,
           ),
+          const SizedBox(height: 8),
         ],
         
         // الملاحظات
         if (widget.donor.notes != null && widget.donor.notes!.isNotEmpty) ...[
-          const SizedBox(height: 8),
           _buildDetailRow(
             Icons.notes,
             'ملاحظات',
             widget.donor.notes!,
           ),
+          const SizedBox(height: 8),
         ],
         
         const SizedBox(height: 16),
         
-        // الأزرار
-        _buildActions(),
+        // أزرار الإدارة (إيقاف وتحديث)
+        _buildManagementActions(),
       ],
     );
   }
@@ -902,37 +903,112 @@ class _ExpandableDonorCardState extends State<_ExpandableDonorCard> {
     );
   }
 
-  /// أزرار الإجراءات
-  Widget _buildActions() {
+  /// صف رقم الهاتف مع أزرار الإجراءات
+  Widget _buildPhoneNumberRow(String label, String phoneNumber) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: AppColors.divider,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // العنوان
+          Row(
+            children: [
+              Icon(
+                Icons.phone,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          
+          // الرقم والأزرار
+          Row(
+            children: [
+              // الرقم
+              Expanded(
+                child: Text(
+                  phoneNumber,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+              
+              const SizedBox(width: 8),
+              
+              // زر الاتصال
+              SizedBox(
+                height: 32,
+                child: ElevatedButton.icon(
+                  onPressed: () => _makePhoneCall(phoneNumber),
+                  icon: const Icon(Icons.phone, size: 14),
+                  label: const Text(
+                    'اتصال',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+              
+              const SizedBox(width: 6),
+              
+              // زر واتساب
+              SizedBox(
+                height: 32,
+                child: ElevatedButton.icon(
+                  onPressed: () => _openWhatsApp(phoneNumber, widget.donor.name),
+                  icon: const Icon(Icons.chat, size: 14),
+                  label: const Text(
+                    'واتساب',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF25D366),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// أزرار الإدارة (إيقاف وتحديث)
+  Widget _buildManagementActions() {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
-        // زر الاتصال
-        ElevatedButton.icon(
-          onPressed: () => _makePhoneCall(widget.donor.phoneNumber),
-          icon: const Icon(Icons.phone, size: 16),
-          label: const Text('اتصال'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.success,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          ),
-        ),
-        
-        // زر واتساب
-        ElevatedButton.icon(
-          onPressed: () => _openWhatsApp(widget.donor.phoneNumber, widget.donor.name),
-          icon: const Icon(Icons.chat, size: 16),
-          label: const Text('واتساب'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF25D366),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          ),
-        ),
-        
-        // زر إيقاف/تحديث
+        // زر إيقاف
         if (!widget.donor.isSuspended)
           ElevatedButton.icon(
             onPressed: () => _suspendDonor(context),
@@ -941,7 +1017,7 @@ class _ExpandableDonorCardState extends State<_ExpandableDonorCard> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.warning,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
           ),
         
@@ -949,11 +1025,11 @@ class _ExpandableDonorCardState extends State<_ExpandableDonorCard> {
         ElevatedButton.icon(
           onPressed: () => _updateLastDonation(context),
           icon: const Icon(Icons.update, size: 16),
-          label: const Text('تحديث التبرع'),
+          label: const Text('تحديث آخر تبرع'),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.info,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           ),
         ),
       ],
