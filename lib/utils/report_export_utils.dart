@@ -19,15 +19,17 @@ class ReportExportUtils {
       final pdf = pw.Document();
 
       // تحميل الخط العربي
-      final fontData = await rootBundle.load('assets/fonts/Amiri-Regular.ttf');
+      final fontData = await rootBundle.load('assets/fonts/IBMPlexSansArabic-Regular.ttf');
+      final fontDataBold = await rootBundle.load('assets/fonts/IBMPlexSansArabic-Bold.ttf');
       final ttf = pw.Font.ttf(fontData);
+      final ttfBold = pw.Font.ttf(fontDataBold);
 
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
           theme: pw.ThemeData.withFont(
             base: ttf,
-            bold: ttf,
+            bold: ttfBold,
           ),
           textDirection: pw.TextDirection.rtl,
           build: (pw.Context context) {
