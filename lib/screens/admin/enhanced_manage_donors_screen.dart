@@ -6,8 +6,8 @@ import '../../models/donor_model.dart';
 import '../../providers/donor_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/expandable_donor_card.dart';
 import '../donor/add_donor_screen.dart';
+import 'widgets/admin_donor_card.dart';
 
 /// شاشة إدارة المتبرعين المحسّنة للأدمن - مطابقة لشاشة المستشفى
 class EnhancedManageDonorsScreen extends StatefulWidget {
@@ -92,11 +92,7 @@ class _EnhancedManageDonorsScreenState
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.of(context)
-              .push(
-                MaterialPageRoute(
-                  builder: (_) => const AddDonorScreen(),
-                ),
-              )
+              .push(MaterialPageRoute(builder: (_) => const AddDonorScreen()))
               .then((_) => context.read<DonorProvider>().loadDonors());
         },
         icon: const Icon(Icons.person_add),
@@ -164,9 +160,7 @@ class _EnhancedManageDonorsScreenState
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: AppColors.divider, width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.divider, width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,18 +170,16 @@ class _EnhancedManageDonorsScreenState
             children: [
               Text(
                 'الفلاتر',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               if (_hasActiveFilters())
                 TextButton.icon(
                   onPressed: _clearFilters,
                   icon: const Icon(Icons.clear_all, size: 18),
                   label: const Text('مسح الكل'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.error,
-                  ),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.error),
                 ),
             ],
           ),
@@ -244,7 +236,8 @@ class _EnhancedManageDonorsScreenState
                       (d) => DropdownMenuItem(value: d, child: Text(d)),
                     ),
                   ],
-                  onChanged: (value) => setState(() => _selectedDistrict = value),
+                  onChanged: (value) =>
+                      setState(() => _selectedDistrict = value),
                 ),
               ),
               const SizedBox(width: 8),
@@ -335,7 +328,10 @@ class _EnhancedManageDonorsScreenState
                   items: const [
                     DropdownMenuItem(value: 'name', child: Text('الاسم')),
                     DropdownMenuItem(value: 'date', child: Text('التاريخ')),
-                    DropdownMenuItem(value: 'bloodType', child: Text('الفصيلة')),
+                    DropdownMenuItem(
+                      value: 'bloodType',
+                      child: Text('الفصيلة'),
+                    ),
                   ],
                   onChanged: (value) =>
                       setState(() => _sortBy = value ?? 'name'),
@@ -355,10 +351,12 @@ class _EnhancedManageDonorsScreenState
         if (provider.isLoading) return const SizedBox.shrink();
 
         final filteredDonors = _applyFilters(provider.donors);
-        final availableCount =
-            filteredDonors.where((d) => !d.isSuspended).length;
-        final suspendedCount =
-            filteredDonors.where((d) => d.isSuspended).length;
+        final availableCount = filteredDonors
+            .where((d) => !d.isSuspended)
+            .length;
+        final suspendedCount = filteredDonors
+            .where((d) => d.isSuspended)
+            .length;
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -422,10 +420,7 @@ class _EnhancedManageDonorsScreenState
         ),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 11,
-            color: AppColors.textSecondary,
-          ),
+          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
         ),
       ],
     );
@@ -470,10 +465,7 @@ class _EnhancedManageDonorsScreenState
             itemCount: filteredDonors.length,
             itemBuilder: (context, index) {
               final donor = filteredDonors[index];
-              return ExpandableDonorCard(
-                donor: donor,
-                showManagementActions: true, // صلاحيات الإدارة
-              );
+              return AdminDonorCard(donor: donor);
             },
           ),
         );
@@ -524,24 +516,28 @@ class _EnhancedManageDonorsScreenState
     if (_searchController.text.isNotEmpty) {
       final query = _searchController.text.toLowerCase();
       filtered = filtered
-          .where((d) =>
-              d.name.toLowerCase().contains(query) ||
-              d.phoneNumber.contains(query) ||
-              (d.phoneNumber2?.contains(query) ?? false) ||
-              (d.phoneNumber3?.contains(query) ?? false))
+          .where(
+            (d) =>
+                d.name.toLowerCase().contains(query) ||
+                d.phoneNumber.contains(query) ||
+                (d.phoneNumber2?.contains(query) ?? false) ||
+                (d.phoneNumber3?.contains(query) ?? false),
+          )
           .toList();
     }
 
     // فصيلة الدم
     if (_selectedBloodType != null) {
-      filtered =
-          filtered.where((d) => d.bloodType == _selectedBloodType).toList();
+      filtered = filtered
+          .where((d) => d.bloodType == _selectedBloodType)
+          .toList();
     }
 
     // المديرية
     if (_selectedDistrict != null) {
-      filtered =
-          filtered.where((d) => d.district == _selectedDistrict).toList();
+      filtered = filtered
+          .where((d) => d.district == _selectedDistrict)
+          .toList();
     }
 
     // الجنس
