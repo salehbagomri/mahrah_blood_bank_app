@@ -165,7 +165,6 @@ class ReportExportUtils {
                   style: pw.TextStyle(
                     fontSize: 10,
                     color: PdfColors.grey700,
-                    fontWeight: pw.FontWeight.bold,
                   ),
                   textAlign: pw.TextAlign.center,
                 ),

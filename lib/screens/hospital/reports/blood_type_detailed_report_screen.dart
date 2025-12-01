@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../../constants/app_colors.dart';
 import '../../../providers/dashboard_provider.dart';
 import '../../../providers/donor_provider.dart';
-import '../../../providers/auth_provider.dart';
 import '../../../services/supabase_service.dart';
 import '../../../widgets/loading_widget.dart';
 import '../../../widgets/empty_state.dart';
@@ -27,20 +26,20 @@ class _BloodTypeDetailedReportScreenState
   @override
   void initState() {
     super.initState();
+    _loadHospitalName();
     Future.microtask(() {
       context.read<DashboardProvider>().loadDashboardData();
-      context.read<DonorProvider>().loadAllDonors();
-      _loadHospitalName();
+      context.read<DonorProvider>().loadDonors(); // استخدام loadDonors بدلاً من loadAllDonors
     });
   }
 
   Future<void> _loadHospitalName() async {
     try {
-      final userId = context.read<AuthProvider>().currentUser?.id;
+      final supabase = SupabaseService();
+      final userId = supabase.currentUser?.id;
       if (userId == null) return;
 
-      final response = await SupabaseService()
-          .client
+      final response = await supabase.client
           .from('hospitals')
           .select('name')
           .eq('id', userId)
@@ -93,7 +92,7 @@ class _BloodTypeDetailedReportScreenState
               actionLabel: 'إعادة المحاولة',
               onAction: () {
                 dashboardProvider.loadDashboardData();
-                donorProvider.loadAllDonors();
+                donorProvider.loadDonors();
               },
             );
           }
