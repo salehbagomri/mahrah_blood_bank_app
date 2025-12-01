@@ -68,13 +68,15 @@ class _EnhancedManageHospitalsScreenState
     // تطبيق الفلتر
     _filteredHospitals = _hospitals.where((hospital) {
       // فلتر البحث
-      final matchesSearch = _searchQuery.isEmpty ||
+      final matchesSearch =
+          _searchQuery.isEmpty ||
           hospital.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           hospital.email.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           hospital.district.toLowerCase().contains(_searchQuery.toLowerCase());
 
       // فلتر الحالة
-      final matchesStatus = _filterStatus == 'all' ||
+      final matchesStatus =
+          _filterStatus == 'all' ||
           (_filterStatus == 'active' && hospital.isActive) ||
           (_filterStatus == 'inactive' && !hospital.isActive);
 
@@ -175,14 +177,12 @@ class _EnhancedManageHospitalsScreenState
       children: [
         // إحصائيات سريعة
         _buildQuickStats(),
-        
+
         // شريط البحث والفلاتر
         _buildSearchAndFilters(),
 
         // قائمة المستشفيات
-        Expanded(
-          child: _buildHospitalsList(),
-        ),
+        Expanded(child: _buildHospitalsList()),
       ],
     );
   }
@@ -196,7 +196,10 @@ class _EnhancedManageHospitalsScreenState
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppColors.primary.withOpacity(0.1), AppColors.primaryDark.withOpacity(0.05)],
+          colors: [
+            AppColors.primary.withOpacity(0.1),
+            AppColors.primaryDark.withOpacity(0.05),
+          ],
         ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.primary.withOpacity(0.2)),
@@ -228,7 +231,12 @@ class _EnhancedManageHospitalsScreenState
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
       child: Row(
         children: [
@@ -255,10 +263,7 @@ class _EnhancedManageHospitalsScreenState
               ),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
             ],
           ),
@@ -301,29 +306,19 @@ class _EnhancedManageHospitalsScreenState
           Row(
             children: [
               Expanded(
-                child: _buildFilterDropdown(
-                  'الحالة',
-                  _filterStatus,
-                  {
-                    'all': 'الكل',
-                    'active': 'نشط',
-                    'inactive': 'معطل',
-                  },
-                  _onFilterChanged,
-                ),
+                child: _buildFilterDropdown('الحالة', _filterStatus, {
+                  'all': 'الكل',
+                  'active': 'نشط',
+                  'inactive': 'معطل',
+                }, _onFilterChanged),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _buildFilterDropdown(
-                  'الترتيب',
-                  _sortBy,
-                  {
-                    'name': 'الاسم',
-                    'date': 'التاريخ',
-                    'district': 'المديرية',
-                  },
-                  _onSortChanged,
-                ),
+                child: _buildFilterDropdown('الترتيب', _sortBy, {
+                  'name': 'الاسم',
+                  'date': 'التاريخ',
+                  'district': 'المديرية',
+                }, _onSortChanged),
               ),
             ],
           ),
@@ -369,18 +364,16 @@ class _EnhancedManageHospitalsScreenState
       value: value,
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
       items: options.entries
-          .map((entry) => DropdownMenuItem(
-                value: entry.key,
-                child: Text(entry.value),
-              ))
+          .map(
+            (entry) =>
+                DropdownMenuItem(value: entry.key, child: Text(entry.value)),
+          )
           .toList(),
       onChanged: (newValue) {
         if (newValue != null) {
@@ -418,7 +411,6 @@ class _EnhancedManageHospitalsScreenState
             onToggleStatus: () => _toggleHospitalStatus(hospital),
             onEdit: () => _editHospital(hospital),
             onDelete: () => _deleteHospital(hospital),
-            onResetPassword: () => _resetPassword(hospital),
           );
         },
       ),
@@ -427,16 +419,12 @@ class _EnhancedManageHospitalsScreenState
 
   void _navigateToAddHospital() {
     Navigator.of(context)
-        .push(
-          MaterialPageRoute(
-            builder: (_) => const AddHospitalScreen(),
-          ),
-        )
+        .push(MaterialPageRoute(builder: (_) => const AddHospitalScreen()))
         .then((result) {
-      if (result == true) {
-        _loadHospitals();
-      }
-    });
+          if (result == true) {
+            _loadHospitals();
+          }
+        });
   }
 
   void _showHospitalDetails(HospitalModel hospital) {
@@ -451,10 +439,8 @@ class _EnhancedManageHospitalsScreenState
         minChildSize: 0.5,
         maxChildSize: 0.95,
         expand: false,
-        builder: (context, scrollController) => _buildHospitalDetailsSheet(
-          hospital,
-          scrollController,
-        ),
+        builder: (context, scrollController) =>
+            _buildHospitalDetailsSheet(hospital, scrollController),
       ),
     );
   }
@@ -484,9 +470,9 @@ class _EnhancedManageHospitalsScreenState
           // العنوان
           Text(
             'تفاصيل المستشفى',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -506,10 +492,6 @@ class _EnhancedManageHospitalsScreenState
             onDelete: () {
               Navigator.pop(context);
               _deleteHospital(hospital);
-            },
-            onResetPassword: () {
-              Navigator.pop(context);
-              _resetPassword(hospital);
             },
           ),
         ],
@@ -555,10 +537,10 @@ class _EnhancedManageHospitalsScreenState
           ),
         )
         .then((result) {
-      if (result == true) {
-        _loadHospitals();
-      }
-    });
+          if (result == true) {
+            _loadHospitals();
+          }
+        });
   }
 
   Future<void> _deleteHospital(HospitalModel hospital) async {
@@ -609,36 +591,4 @@ class _EnhancedManageHospitalsScreenState
     }
   }
 
-  Future<void> _resetPassword(HospitalModel hospital) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('إعادة تعيين كلمة المرور'),
-        content: Text(
-          'هل تريد إرسال رسالة إعادة تعيين كلمة المرور إلى:\n\n${hospital.email}',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(AppStrings.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.warning),
-            child: const Text('إرسال'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم إرسال رابط إعادة التعيين إلى ${hospital.email}'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-    }
-  }
 }
-

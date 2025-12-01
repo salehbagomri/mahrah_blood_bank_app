@@ -90,10 +90,7 @@ class _EnhancedAdminDashboardScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: _buildBody(),
-    );
+    return Scaffold(appBar: _buildAppBar(), body: _buildBody());
   }
 
   AppBar _buildAppBar() {
@@ -175,9 +172,9 @@ class _EnhancedAdminDashboardScreenState
       children: [
         Text(
           'الإدارة الرئيسية',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
 
@@ -186,7 +183,9 @@ class _EnhancedAdminDashboardScreenState
           title: 'مراجعة البلاغات',
           subtitle: 'إدارة البلاغات الواردة من المستخدمين',
           icon: Icons.report_problem,
-          color: _pendingReportsCount > 0 ? AppColors.warning : AppColors.success,
+          color: _pendingReportsCount > 0
+              ? AppColors.warning
+              : AppColors.success,
           badgeCount: _pendingReportsCount,
           isUrgent: _pendingReportsCount > 5,
           onTap: () => _navigateTo(const ReviewReportsScreen()),
@@ -232,9 +231,9 @@ class _EnhancedAdminDashboardScreenState
       children: [
         Text(
           'إعدادات متقدمة',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
 
@@ -300,9 +299,7 @@ class _EnhancedAdminDashboardScreenState
   }) {
     return Card(
       elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         onTap: onTap,
         leading: Container(
@@ -312,24 +309,12 @@ class _EnhancedAdminDashboardScreenState
             color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            size: 22,
-            color: color,
-          ),
+          child: Icon(icon, size: 22, color: color),
         ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(
           subtitle,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
+          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
         trailing: Icon(
           Icons.arrow_forward_ios,
@@ -341,9 +326,9 @@ class _EnhancedAdminDashboardScreenState
   }
 
   void _navigateTo(Widget screen) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => screen),
-    ).then((_) => _loadDashboardData());
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => screen))
+        .then((_) => _loadDashboardData());
   }
 
   Future<void> _showLogoutDialog() async {
@@ -359,9 +344,7 @@ class _EnhancedAdminDashboardScreenState
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('تسجيل الخروج'),
           ),
         ],
@@ -376,4 +359,3 @@ class _EnhancedAdminDashboardScreenState
     }
   }
 }
-

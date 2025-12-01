@@ -11,7 +11,6 @@ class EnhancedHospitalCard extends StatelessWidget {
   final VoidCallback onToggleStatus;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final VoidCallback onResetPassword;
 
   const EnhancedHospitalCard({
     super.key,
@@ -20,7 +19,6 @@ class EnhancedHospitalCard extends StatelessWidget {
     required this.onToggleStatus,
     required this.onEdit,
     required this.onDelete,
-    required this.onResetPassword,
   });
 
   @override
@@ -56,7 +54,10 @@ class EnhancedHospitalCard extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: hospital.isActive
                             ? [AppColors.primary, AppColors.primaryDark]
-                            : [AppColors.textSecondary, AppColors.textSecondary],
+                            : [
+                                AppColors.textSecondary,
+                                AppColors.textSecondary,
+                              ],
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -78,12 +79,8 @@ class EnhancedHospitalCard extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 hospital.name,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -103,9 +100,7 @@ class EnhancedHospitalCard extends StatelessWidget {
                             const SizedBox(width: 4),
                             Text(
                               'منذ ${Helpers.formatDateTime(hospital.createdAt)}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: AppColors.textSecondary,
                                     fontSize: 11,
@@ -177,13 +172,6 @@ class EnhancedHospitalCard extends StatelessWidget {
                   ),
                   _buildActionChip(
                     context,
-                    label: 'إعادة تعيين كلمة المرور',
-                    icon: Icons.vpn_key,
-                    color: AppColors.warning,
-                    onTap: onResetPassword,
-                  ),
-                  _buildActionChip(
-                    context,
                     label: 'حذف',
                     icon: Icons.delete,
                     color: AppColors.error,
@@ -200,10 +188,7 @@ class EnhancedHospitalCard extends StatelessWidget {
 
   Widget _buildStatusBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: hospital.isActive
             ? AppColors.success.withOpacity(0.1)
@@ -253,11 +238,7 @@ class EnhancedHospitalCard extends StatelessWidget {
             color: AppColors.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            icon,
-            size: 16,
-            color: AppColors.primary,
-          ),
+          child: Icon(icon, size: 16, color: AppColors.primary),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -267,16 +248,16 @@ class EnhancedHospitalCard extends StatelessWidget {
               Text(
                 label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 11,
-                    ),
+                  color: AppColors.textSecondary,
+                  fontSize: 11,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -305,25 +286,16 @@ class EnhancedHospitalCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: color.withOpacity(0.3),
-          ),
+          border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 16,
-              color: color,
-            ),
+            Icon(icon, size: 16, color: color),
             const SizedBox(width: 6),
             Text(
               label,
@@ -350,4 +322,3 @@ class EnhancedHospitalCard extends StatelessWidget {
     );
   }
 }
-
