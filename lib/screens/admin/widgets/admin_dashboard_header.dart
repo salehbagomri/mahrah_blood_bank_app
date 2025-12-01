@@ -12,7 +12,8 @@ class AdminDashboardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
-        final user = SupabaseService.instance.client.auth.currentUser;
+        final supabaseService = SupabaseService();
+        final user = supabaseService.currentUser;
         final adminName = user?.userMetadata?['name'] ?? 'الأدمن';
         final email = user?.email ?? '';
 
