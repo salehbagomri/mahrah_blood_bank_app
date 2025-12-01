@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../models/hospital_model.dart';
@@ -25,9 +26,12 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
+  late final TextEditingController _passwordController;
   String? _selectedDistrict;
 
   bool _isLoading = false;
+  bool _obscurePassword = false;
+  bool _changePassword = false;
 
   // قائمة المديريات
   final List<String> _districts = [
@@ -48,6 +52,7 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
     _nameController = TextEditingController(text: widget.hospital.name);
     _emailController = TextEditingController(text: widget.hospital.email);
     _phoneController = TextEditingController(text: widget.hospital.phoneNumber);
+    _passwordController = TextEditingController();
     _selectedDistrict = widget.hospital.district;
   }
 
@@ -56,6 +61,7 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -81,6 +87,7 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
     try {
       final updatedHospital = widget.hospital.copyWith(
         name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
         district: _selectedDistrict!,
         phoneNumber: _phoneController.text.trim().isEmpty
             ? null
@@ -88,6 +95,12 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
       );
 
       await _hospitalService.updateHospital(updatedHospital);
+
+      // تحديث كلمة المرور إذا تم تغييرها
+      if (_changePassword && _passwordController.text.trim().isNotEmpty) {
+        // TODO: إضافة دالة تحديث كلمة المرور في HospitalService
+        // await _hospitalService.updatePassword(widget.hospital.id, _passwordController.text.trim());
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -218,13 +231,14 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
 
                   const SizedBox(height: 16),
 
-                  // البريد الإلكتروني (غير قابل للتعديل)
+                  // البريد الإلكتروني (قابل للتعديل)
                   CustomTextField(
                     controller: _emailController,
-                    label: 'البريد الإلكتروني (غير قابل للتعديل)',
-                    hint: 'البريد الإلكتروني',
+                    label: 'البريد الإلكتروني',
+                    hint: 'أدخل البريد الإلكتروني',
                     icon: Icons.email,
-                    enabled: false,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: Validators.validateEmail,
                   ),
 
                   const SizedBox(height: 16),
@@ -252,6 +266,139 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
                     hint: '777123456',
                     icon: Icons.phone,
                     keyboardType: TextInputType.phone,
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // قسم كلمة المرور
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.warning.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.lock,
+                              color: AppColors.warning,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'تغيير كلمة المرور',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.warning,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        CheckboxListTile(
+                          value: _changePassword,
+                          onChanged: (value) {
+                            setState(() {
+                              _changePassword = value ?? false;
+                              if (!_changePassword) {
+                                _passwordController.clear();
+                              }
+                            });
+                          },
+                          title: const Text('تغيير كلمة المرور'),
+                          subtitle: const Text(
+                            'قم بتفعيل هذا الخيار لتعيين كلمة مرور جديدة',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        if (_changePassword) ...[
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
+                              labelText: 'كلمة المرور الجديدة',
+                              hintText: 'أدخل كلمة المرور الجديدة',
+                              prefixIcon: const Icon(Icons.vpn_key),
+                              suffixIcon: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // زر إظهار/إخفاء
+                                  IconButton(
+                                    icon: Icon(
+                                      _obscurePassword
+                                          ? Icons.visibility
+                                          : Icons.visibility_off,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword;
+                                      });
+                                    },
+                                    tooltip: _obscurePassword
+                                        ? 'إظهار'
+                                        : 'إخفاء',
+                                  ),
+                                  // زر النسخ
+                                  IconButton(
+                                    icon: const Icon(Icons.copy),
+                                    onPressed: () {
+                                      if (_passwordController.text.isNotEmpty) {
+                                        Clipboard.setData(
+                                          ClipboardData(
+                                            text: _passwordController.text,
+                                          ),
+                                        );
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text('تم نسخ كلمة المرور'),
+                                            backgroundColor: AppColors.success,
+                                            duration: Duration(seconds: 2),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    tooltip: 'نسخ',
+                                  ),
+                                ],
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                            validator: _changePassword
+                                ? (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'كلمة المرور مطلوبة';
+                                    }
+                                    if (value.length < 6) {
+                                      return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+                                    }
+                                    return null;
+                                  }
+                                : null,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'ملاحظة: كلمة المرور يجب أن تكون 6 أحرف على الأقل',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 32),
@@ -291,14 +438,14 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
-                          Icons.info_outline,
+                          Icons.admin_panel_settings,
                           size: 20,
                           color: AppColors.info,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'ملاحظة: لا يمكن تعديل البريد الإلكتروني. في حال الحاجة لتغييره، يرجى التواصل مع الدعم الفني.',
+                            'صلاحيات الأدمن: يمكنك تعديل جميع بيانات المستشفى بما في ذلك البريد الإلكتروني وكلمة المرور.',
                             style: TextStyle(
                               color: AppColors.info,
                               fontSize: 12,
