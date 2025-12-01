@@ -10,21 +10,19 @@ ON donors
 FOR UPDATE
 TO authenticated
 USING (
-  -- يمكن للمستشفيات تحديث أي متبرع
+  -- يمكن للمستشفيات النشطة تحديث أي متبرع
   EXISTS (
-    SELECT 1 FROM users
-    WHERE users.id = auth.uid()
-    AND users.role = 'hospital'
-    AND users.is_active = true
+    SELECT 1 FROM hospitals
+    WHERE hospitals.id = auth.uid()
+    AND hospitals.is_active = true
   )
 )
 WITH CHECK (
   -- التأكد من أن المستشفى نشط
   EXISTS (
-    SELECT 1 FROM users
-    WHERE users.id = auth.uid()
-    AND users.role = 'hospital'
-    AND users.is_active = true
+    SELECT 1 FROM hospitals
+    WHERE hospitals.id = auth.uid()
+    AND hospitals.is_active = true
   )
 );
 
