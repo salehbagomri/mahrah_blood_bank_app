@@ -7,7 +7,7 @@
 -- 1. سياسات للمستخدمين العاديين (Public)
 -- ============================================
 
--- القراءة فقط للمتبرعين المتاحين
+-- القراءة للمتبرعين المتاحين
 CREATE POLICY "public_select_available_donors"
 ON donors
 FOR SELECT
@@ -17,6 +17,13 @@ USING (
     is_available = true 
     AND is_active = true
 );
+
+-- الإضافة (للجميع - أي شخص يمكنه إضافة نفسه كمتبرع)
+CREATE POLICY "public_insert_donors"
+ON donors
+FOR INSERT
+TO anon, authenticated
+WITH CHECK (true);
 
 -- ============================================
 -- 2. سياسات للأدمن (جميع الصلاحيات)
