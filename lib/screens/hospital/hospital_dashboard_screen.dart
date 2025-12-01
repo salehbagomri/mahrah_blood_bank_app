@@ -83,15 +83,6 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
         ),
       ),
       actions: [
-        // زر تحديث
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: 'تحديث',
-          onPressed: () {
-            context.read<DashboardProvider>().refreshDashboard();
-          },
-        ),
-
         // زر تسجيل الخروج
         IconButton(
           icon: const Icon(Icons.logout),

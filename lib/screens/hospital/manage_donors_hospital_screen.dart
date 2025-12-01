@@ -61,11 +61,6 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
               });
             },
           ),
-          // زر التحديث
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => context.read<DonorProvider>().loadDonors(),
-          ),
         ],
       ),
       body: Column(
