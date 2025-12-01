@@ -555,8 +555,133 @@ class _ExpandableDonorCardState extends State<ExpandableDonorCard>
 
   /// تحديث آخر تبرع
   Future<void> _updateLastDonation(BuildContext context) async {
+    // 1. اختيار التاريخ من المستخدم
+    final DateTime? selectedDate = await showDatePicker(
+      context: context,
+      initialDate: widget.donor.lastDonationDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      helpText: 'اختر تاريخ آخر تبرع',
+      cancelText: 'إلغاء',
+      confirmText: 'تأكيد',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    // إذا لم يختر تاريخ، نلغي العملية
+    if (selectedDate == null) return;
+
+    // 2. حساب التواريخ والحالة
+    final sixMonthsFromDonation = selectedDate.add(const Duration(days: 180));
+    final now = DateTime.now();
+    final willBeSuspended = now.isBefore(sixMonthsFromDonation);
+    
+    final daysUntilAvailable = willBeSuspended 
+        ? sixMonthsFromDonation.difference(now).inDays
+        : 0;
+
+    // 3. عرض مربع تأكيد مع التفاصيل
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تأكيد تحديث آخر تبرع'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('المتبرع: ${widget.donor.name}'),
+            const SizedBox(height: 12),
+            Text('تاريخ آخر تبرع: ${_formatDate(selectedDate)}'),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: willBeSuspended 
+                    ? AppColors.warning.withOpacity(0.1)
+                    : AppColors.success.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: willBeSuspended 
+                      ? AppColors.warning.withOpacity(0.3)
+                      : AppColors.success.withOpacity(0.3),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        willBeSuspended ? Icons.pause_circle : Icons.check_circle,
+                        color: willBeSuspended ? AppColors.warning : AppColors.success,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        willBeSuspended ? 'سيتم الإيقاف' : 'متاح للتبرع',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: willBeSuspended ? AppColors.warning : AppColors.success,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (willBeSuspended) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'موقوف حتى: ${_formatDate(sixMonthsFromDonation)}',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    Text(
+                      'المدة المتبقية: $daysUntilAvailable يوم',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'مر أكثر من 6 أشهر، المتبرع متاح',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+            ),
+            child: const Text('تأكيد التحديث'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    // 4. تحديث البيانات
     final updatedDonor = widget.donor.copyWith(
-      lastDonationDate: DateTime.now(),
+      lastDonationDate: selectedDate,
+      suspendedUntil: willBeSuspended ? sixMonthsFromDonation : null,
+      isAvailable: !willBeSuspended,
     );
 
     final success =
@@ -564,9 +689,14 @@ class _ExpandableDonorCardState extends State<ExpandableDonorCard>
 
     if (context.mounted && success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم تحديث تاريخ آخر تبرع'),
+        SnackBar(
+          content: Text(
+            willBeSuspended
+                ? 'تم التحديث - موقوف حتى ${_formatDate(sixMonthsFromDonation)}'
+                : 'تم التحديث - المتبرع متاح للتبرع',
+          ),
           backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 4),
         ),
       );
     }
