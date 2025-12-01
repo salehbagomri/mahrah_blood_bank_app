@@ -3,7 +3,7 @@ import '../../../constants/app_colors.dart';
 import '../../../models/dashboard_statistics_model.dart';
 import 'stat_card.dart';
 
-/// شبكة الإحصائيات (6 إحصائيات في grid)
+/// شبكة الإحصائيات
 class StatisticsGrid extends StatelessWidget {
   final DashboardStatisticsModel statistics;
 
@@ -11,20 +11,6 @@ class StatisticsGrid extends StatelessWidget {
     super.key,
     required this.statistics,
   });
-
-  Color _getBloodTypeColor(String? bloodType) {
-    if (bloodType == null) return AppColors.textSecondary;
-
-    if (bloodType.contains('A') && !bloodType.contains('AB')) {
-      return AppColors.bloodTypeA;
-    }
-    if (bloodType.contains('B') && !bloodType.contains('AB')) {
-      return AppColors.bloodTypeB;
-    }
-    if (bloodType.contains('AB')) return AppColors.bloodTypeAB;
-    if (bloodType.contains('O')) return AppColors.bloodTypeO;
-    return AppColors.primary;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,30 +54,6 @@ class StatisticsGrid extends StatelessWidget {
               label: 'موقوفين',
               value: '${statistics.suspendedDonors}',
               color: AppColors.warning,
-            ),
-
-            // 4. جدد هذا الشهر
-            StatCard(
-              icon: Icons.calendar_today,
-              label: 'جدد هذا الشهر',
-              value: '${statistics.newDonorsThisMonth}',
-              color: AppColors.info,
-            ),
-
-            // 5. أكثر فصيلة
-            StatCard(
-              icon: Icons.bloodtype,
-              label: 'أكثر فصيلة',
-              value: statistics.mostCommonBloodType ?? '-',
-              color: _getBloodTypeColor(statistics.mostCommonBloodType),
-            ),
-
-            // 6. عدد المناطق
-            StatCard(
-              icon: Icons.location_city,
-              label: 'المناطق المغطاة',
-              value: '${statistics.coveredDistrictsCount}',
-              color: AppColors.textSecondary,
             ),
           ],
         ),

@@ -7,15 +7,11 @@ import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
-import '../donor/add_donor_screen.dart';
 import 'manage_donors_hospital_screen.dart';
-import 'suspended_donors_screen.dart';
-import 'advanced_search_screen.dart';
 import 'blood_type_report_screen.dart';
 import 'widgets/dashboard_header.dart';
 import 'widgets/statistics_grid.dart';
 import 'widgets/enhanced_main_card.dart';
-import 'widgets/quick_actions_row.dart';
 import 'widgets/dashboard_search_bar.dart';
 
 /// لوحة إدارة المستشفى - النسخة المحسّنة
@@ -70,18 +66,6 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
             return _buildDashboardContent(stats);
           },
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const AddDonorScreen(),
-            ),
-          ).then((_) => context.read<DashboardProvider>().refreshDashboard());
-        },
-        icon: const Icon(Icons.person_add),
-        label: const Text('إضافة متبرع'),
-        backgroundColor: AppColors.primary,
       ),
     );
   }
@@ -161,15 +145,11 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
           const DashboardSearchBar(),
           const SizedBox(height: 20),
 
-          // 3. شبكة الإحصائيات (6 إحصائيات)
+          // 3. شبكة الإحصائيات
           StatisticsGrid(statistics: stats),
           const SizedBox(height: 20),
 
-          // 4. الإجراءات السريعة
-          const QuickActionsRow(),
-          const SizedBox(height: 20),
-
-          // 5. الأقسام الرئيسية
+          // 4. الأقسام الرئيسية
           _buildMainSections(stats),
         ],
       ),
@@ -211,51 +191,10 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
               },
             ),
 
-            // البحث المتقدم
+            // التقارير
             EnhancedMainCard(
-              icon: Icons.search,
-              title: AppStrings.advancedSearch,
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.info,
-                  AppColors.info.withOpacity(0.7),
-                ],
-              ),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const AdvancedSearchScreen(),
-                  ),
-                );
-              },
-            ),
-
-            // المتبرعين الموقوفين
-            EnhancedMainCard(
-              icon: Icons.pause_circle,
-              title: AppStrings.suspendedDonors,
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.warning,
-                  AppColors.warning.withOpacity(0.7),
-                ],
-              ),
-              badge: stats.suspendedDonors > 0
-                  ? '${stats.suspendedDonors}'
-                  : null,
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const SuspendedDonorsScreen(),
-                  ),
-                );
-              },
-            ),
-
-            // تقارير فصائل الدم
-            EnhancedMainCard(
-              icon: Icons.bar_chart,
-              title: AppStrings.bloodTypeReport,
+              icon: Icons.analytics,
+              title: 'التقارير',
               gradient: LinearGradient(
                 colors: [
                   AppColors.success,
