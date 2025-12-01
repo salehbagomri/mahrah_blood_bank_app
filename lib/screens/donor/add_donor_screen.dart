@@ -249,18 +249,6 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
                   
                   const SizedBox(height: 16),
                   
-                  // الملاحظات (اختياري)
-                  CustomTextField(
-                    controller: _notesController,
-                    label: '${AppStrings.notes} (${AppStrings.optional})',
-                    hint: 'أي ملاحظات إضافية',
-                    icon: Icons.notes,
-                    maxLines: 3,
-                    maxLength: 200,
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
                   // تاريخ آخر تبرع (اختياري)
                   GestureDetector(
                     onTap: _selectLastDonationDate,
@@ -316,6 +304,18 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
                     const SizedBox(height: 8),
                     _buildDonationDateNote(),
                   ],
+                  
+                  const SizedBox(height: 16),
+                  
+                  // الملاحظات (اختياري)
+                  CustomTextField(
+                    controller: _notesController,
+                    label: '${AppStrings.notes} (${AppStrings.optional})',
+                    hint: 'أي ملاحظات إضافية',
+                    icon: Icons.notes,
+                    maxLines: 3,
+                    maxLength: 200,
+                  ),
                   
                   const SizedBox(height: 24),
                   
