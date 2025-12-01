@@ -9,7 +9,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/expandable_donor_card.dart';
 import '../donor/add_donor_screen.dart';
 
-/// شاشة إدارة المتبرعين المحسّنة للأدمن
+/// شاشة إدارة المتبرعين المحسّنة للأدمن - مطابقة لشاشة المستشفى
 class EnhancedManageDonorsScreen extends StatefulWidget {
   const EnhancedManageDonorsScreen({super.key});
 
@@ -26,36 +26,10 @@ class _EnhancedManageDonorsScreenState
   String? _selectedBloodType;
   String? _selectedDistrict;
   String? _selectedGender;
-  String _selectedStatus = 'all'; // 'all', 'available', 'suspended'
-  String _sortBy = 'date'; // 'name', 'date', 'bloodType'
+  String? _selectedStatus; // 'all', 'available', 'suspended'
+  String _sortBy = 'name'; // 'name', 'date', 'bloodType'
 
   bool _showFilters = false;
-
-  // قوائم الخيارات
-  final List<String> _bloodTypes = [
-    'A+',
-    'A-',
-    'B+',
-    'B-',
-    'AB+',
-    'AB-',
-    'O+',
-    'O-',
-  ];
-
-  final List<String> _districts = [
-    'الغيضة',
-    'حصوين',
-    'حات',
-    'المسيلة',
-    'شحن',
-    'قشن',
-    'منعر',
-    'سيحوت',
-    'حوف',
-  ];
-
-  final List<String> _genders = ['ذكر', 'أنثى'];
 
   @override
   void initState() {
@@ -71,73 +45,35 @@ class _EnhancedManageDonorsScreenState
     super.dispose();
   }
 
-  bool _hasActiveFilters() {
-    return _selectedBloodType != null ||
-        _selectedDistrict != null ||
-        _selectedGender != null ||
-        _selectedStatus != 'all';
-  }
-
-  List<DonorModel> _applyFilters(List<DonorModel> donors) {
-    var filtered = donors;
-
-    // فلتر نوع الدم
-    if (_selectedBloodType != null) {
-      filtered =
-          filtered.where((d) => d.bloodType == _selectedBloodType).toList();
-    }
-
-    // فلتر المديرية
-    if (_selectedDistrict != null) {
-      filtered =
-          filtered.where((d) => d.district == _selectedDistrict).toList();
-    }
-
-    // فلتر الجنس
-    if (_selectedGender != null) {
-      filtered = filtered.where((d) => d.gender == _selectedGender).toList();
-    }
-
-    // فلتر الحالة
-    if (_selectedStatus == 'available') {
-      filtered = filtered.where((d) => d.isAvailable).toList();
-    } else if (_selectedStatus == 'suspended') {
-      filtered = filtered.where((d) => !d.isAvailable).toList();
-    }
-
-    // الترتيب
-    filtered.sort((a, b) {
-      switch (_sortBy) {
-        case 'name':
-          return a.name.compareTo(b.name);
-        case 'date':
-          return b.createdAt.compareTo(a.createdAt);
-        case 'bloodType':
-          return a.bloodType.compareTo(b.bloodType);
-        default:
-          return 0;
-      }
-    });
-
-    return filtered;
-  }
-
-  void _clearAllFilters() {
-    setState(() {
-      _selectedBloodType = null;
-      _selectedDistrict = null;
-      _selectedGender = null;
-      _selectedStatus = 'all';
-      _searchController.clear();
-    });
-    context.read<DonorProvider>().clearSearchResults();
-    context.read<DonorProvider>().loadDonors();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
+      appBar: AppBar(
+        title: const Text(AppStrings.manageDonors),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.primary, AppColors.primaryDark],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        actions: [
+          // زر الفلاتر
+          IconButton(
+            icon: Icon(
+              _showFilters ? Icons.filter_list_off : Icons.filter_list,
+              color: _hasActiveFilters() ? AppColors.primary : null,
+            ),
+            onPressed: () {
+              setState(() {
+                _showFilters = !_showFilters;
+              });
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // شريط البحث
@@ -165,47 +101,11 @@ class _EnhancedManageDonorsScreenState
         },
         icon: const Icon(Icons.person_add),
         label: const Text('إضافة متبرع'),
-        backgroundColor: AppColors.primary,
       ),
     );
   }
 
-  AppBar _buildAppBar() {
-    return AppBar(
-      title: const Text('إدارة المتبرعين'),
-      flexibleSpace: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [AppColors.primary, AppColors.primaryDark],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-      ),
-      actions: [
-        // زر الفلاتر
-        IconButton(
-          icon: Icon(
-            _showFilters ? Icons.filter_list_off : Icons.filter_list,
-          ),
-          onPressed: () {
-            setState(() {
-              _showFilters = !_showFilters;
-            });
-          },
-          tooltip: _showFilters ? 'إخفاء الفلاتر' : 'إظهار الفلاتر',
-        ),
-        // زر مسح الفلاتر
-        if (_hasActiveFilters())
-          IconButton(
-            icon: const Icon(Icons.clear_all),
-            onPressed: _clearAllFilters,
-            tooltip: 'مسح جميع الفلاتر',
-          ),
-      ],
-    );
-  }
-
+  /// شريط البحث المحسّن
   Widget _buildSearchBar() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -219,272 +119,282 @@ class _EnhancedManageDonorsScreenState
           ),
         ],
       ),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'بحث بالاسم أو رقم الهاتف...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    context.read<DonorProvider>().clearSearchResults();
-                    context.read<DonorProvider>().loadDonors();
-                    setState(() {});
-                  },
-                )
-              : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          filled: true,
-          fillColor: AppColors.background,
-        ),
-        onChanged: (query) {
-          setState(() {});
-          if (query.length >= 2) {
-            context.read<DonorProvider>().searchByNameOrPhone(query);
-          } else if (query.isEmpty) {
-            context.read<DonorProvider>().clearSearchResults();
-            context.read<DonorProvider>().loadDonors();
-          }
-        },
-      ),
-    );
-  }
-
-  Widget _buildFilters() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
-        border: Border(
-          bottom: BorderSide(
-            color: AppColors.divider,
-          ),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(Icons.filter_alt, size: 20, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(
-                'الفلاتر',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'بحث بالاسم أو رقم الهاتف...',
+                prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _searchController.clear();
+                          });
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: AppColors.background,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // صف الفلاتر الأول
-          Row(
-            children: [
-              Expanded(
-                child: _buildFilterDropdown(
-                  'فصيلة الدم',
-                  _selectedBloodType,
-                  _bloodTypes,
-                  (value) => setState(() => _selectedBloodType = value),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildFilterDropdown(
-                  'المديرية',
-                  _selectedDistrict,
-                  _districts,
-                  (value) => setState(() => _selectedDistrict = value),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // صف الفلاتر الثاني
-          Row(
-            children: [
-              Expanded(
-                child: _buildFilterDropdown(
-                  'الجنس',
-                  _selectedGender,
-                  _genders,
-                  (value) => setState(() => _selectedGender = value),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildFilterDropdown(
-                  'الحالة',
-                  _selectedStatus,
-                  ['all', 'available', 'suspended'],
-                  (value) => setState(() => _selectedStatus = value ?? 'all'),
-                  displayNames: {
-                    'all': 'الكل',
-                    'available': 'متاح',
-                    'suspended': 'موقوف',
-                  },
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // الترتيب
-          DropdownButtonFormField<String>(
-            value: _sortBy,
-            decoration: InputDecoration(
-              labelText: 'الترتيب حسب',
-              prefixIcon: const Icon(Icons.sort, size: 20),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              onChanged: (query) {
+                setState(() {});
+              },
             ),
-            items: const [
-              DropdownMenuItem(value: 'name', child: Text('الاسم')),
-              DropdownMenuItem(value: 'date', child: Text('الأحدث')),
-              DropdownMenuItem(value: 'bloodType', child: Text('فصيلة الدم')),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() => _sortBy = value);
-              }
-            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFilterDropdown(
-    String label,
-    String? value,
-    List<String> items,
-    Function(String?) onChanged, {
-    Map<String, String>? displayNames,
-  }) {
-    return DropdownButtonFormField<String>(
-      value: value,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+  /// قسم الفلاتر
+  Widget _buildFilters() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: AppColors.divider, width: 1),
         ),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
-      hint: Text('الكل'),
-      items: items
-          .map((item) => DropdownMenuItem(
-                value: item,
-                child: Text(displayNames?[item] ?? item),
-              ))
-          .toList(),
-      onChanged: onChanged,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'الفلاتر',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              if (_hasActiveFilters())
+                TextButton.icon(
+                  onPressed: _clearFilters,
+                  icon: const Icon(Icons.clear_all, size: 18),
+                  label: const Text('مسح الكل'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // فصيلة الدم
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildFilterChip(
+                label: 'الكل',
+                isSelected: _selectedBloodType == null,
+                onTap: () => setState(() => _selectedBloodType = null),
+              ),
+              ...['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(
+                (type) => _buildFilterChip(
+                  label: type,
+                  isSelected: _selectedBloodType == type,
+                  color: _getBloodTypeColor(type),
+                  onTap: () => setState(() => _selectedBloodType = type),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // المديرية والجنس والحالة
+          Row(
+            children: [
+              // المديرية
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _selectedDistrict,
+                  decoration: InputDecoration(
+                    labelText: 'المديرية',
+                    prefixIcon: const Icon(Icons.location_city, size: 18),
+                    filled: true,
+                    fillColor: AppColors.background,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    isDense: true,
+                  ),
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('الكل')),
+                    ...AppStrings.districts.map(
+                      (d) => DropdownMenuItem(value: d, child: Text(d)),
+                    ),
+                  ],
+                  onChanged: (value) => setState(() => _selectedDistrict = value),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // الجنس
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _selectedGender,
+                  decoration: InputDecoration(
+                    labelText: 'الجنس',
+                    prefixIcon: const Icon(Icons.person, size: 18),
+                    filled: true,
+                    fillColor: AppColors.background,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    isDense: true,
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: null, child: Text('الكل')),
+                    DropdownMenuItem(value: 'male', child: Text('ذكر')),
+                    DropdownMenuItem(value: 'female', child: Text('أنثى')),
+                  ],
+                  onChanged: (value) => setState(() => _selectedGender = value),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // الحالة والترتيب
+          Row(
+            children: [
+              // الحالة
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _selectedStatus ?? 'all',
+                  decoration: InputDecoration(
+                    labelText: 'الحالة',
+                    prefixIcon: const Icon(Icons.check_circle, size: 18),
+                    filled: true,
+                    fillColor: AppColors.background,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    isDense: true,
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'all', child: Text('الكل')),
+                    DropdownMenuItem(value: 'available', child: Text('متاح')),
+                    DropdownMenuItem(value: 'suspended', child: Text('موقوف')),
+                  ],
+                  onChanged: (value) => setState(() => _selectedStatus = value),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // الترتيب
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _sortBy,
+                  decoration: InputDecoration(
+                    labelText: 'ترتيب حسب',
+                    prefixIcon: const Icon(Icons.sort, size: 18),
+                    filled: true,
+                    fillColor: AppColors.background,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    isDense: true,
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'name', child: Text('الاسم')),
+                    DropdownMenuItem(value: 'date', child: Text('التاريخ')),
+                    DropdownMenuItem(value: 'bloodType', child: Text('الفصيلة')),
+                  ],
+                  onChanged: (value) =>
+                      setState(() => _sortBy = value ?? 'name'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
+  /// إحصائيات سريعة
   Widget _buildQuickStats() {
     return Consumer<DonorProvider>(
       builder: (context, provider, _) {
-        final allDonors = _searchController.text.isNotEmpty
-            ? provider.searchResults
-            : provider.donors;
+        if (provider.isLoading) return const SizedBox.shrink();
 
-        final filteredDonors = _applyFilters(allDonors);
+        final filteredDonors = _applyFilters(provider.donors);
         final availableCount =
-            filteredDonors.where((d) => d.isAvailable).length;
-        final suspendedCount = filteredDonors.length - availableCount;
-
-        // إحصائيات فصائل الدم
-        final bloodTypeStats = <String, int>{};
-        for (var donor in filteredDonors) {
-          bloodTypeStats[donor.bloodType] =
-              (bloodTypeStats[donor.bloodType] ?? 0) + 1;
-        }
-        final mostCommonBloodType = bloodTypeStats.isNotEmpty
-            ? bloodTypeStats.entries
-                .reduce((a, b) => a.value > b.value ? a : b)
-                .key
-            : '-';
+            filteredDonors.where((d) => !d.isSuspended).length;
+        final suspendedCount =
+            filteredDonors.where((d) => d.isSuspended).length;
 
         return Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                AppColors.primary.withOpacity(0.1),
-                AppColors.primaryDark.withOpacity(0.05),
-              ],
+              colors: [AppColors.primary.withOpacity(0.1), Colors.white],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+            border: Border(
+              bottom: BorderSide(color: AppColors.divider, width: 1),
+            ),
           ),
-          child: Column(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Row(
-                children: [
-                  _buildStatItem(
-                    'الإجمالي',
-                    '${filteredDonors.length}',
-                    Icons.people,
-                    AppColors.primary,
-                  ),
-                  const SizedBox(width: 12),
-                  _buildStatItem(
-                    'متاح',
-                    '$availableCount',
-                    Icons.favorite,
-                    AppColors.success,
-                  ),
-                  const SizedBox(width: 12),
-                  _buildStatItem(
-                    'موقوف',
-                    '$suspendedCount',
-                    Icons.block,
-                    AppColors.warning,
-                  ),
-                ],
+              _buildStatItem(
+                icon: Icons.people,
+                label: 'الإجمالي',
+                value: '${filteredDonors.length}',
+                color: AppColors.primary,
               ),
-              if (filteredDonors.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                const Divider(height: 1),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.analytics,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'أكثر فصيلة: $mostCommonBloodType (${bloodTypeStats[mostCommonBloodType] ?? 0})',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              Container(width: 1, height: 30, color: AppColors.divider),
+              _buildStatItem(
+                icon: Icons.check_circle,
+                label: 'متاح',
+                value: '$availableCount',
+                color: AppColors.success,
+              ),
+              Container(width: 1, height: 30, color: AppColors.divider),
+              _buildStatItem(
+                icon: Icons.pause_circle,
+                label: 'موقوف',
+                value: '$suspendedCount',
+                color: AppColors.warning,
+              ),
             ],
           ),
         );
@@ -492,41 +402,36 @@ class _EnhancedManageDonorsScreenState
     );
   }
 
-  Widget _buildStatItem(
-      String label, String value, IconData icon, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.2)),
+  Widget _buildStatItem({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: AppColors.textSecondary,
+          ),
         ),
-      ),
+      ],
     );
   }
 
+  /// قائمة المتبرعين
   Widget _buildDonorsList() {
     return Consumer<DonorProvider>(
       builder: (context, provider, _) {
@@ -544,69 +449,164 @@ class _EnhancedManageDonorsScreenState
           );
         }
 
-        final allDonors = _searchController.text.isNotEmpty
-            ? provider.searchResults
-            : provider.donors;
-
-        final filteredDonors = _applyFilters(allDonors);
+        final filteredDonors = _applyFilters(provider.donors);
 
         if (filteredDonors.isEmpty) {
           return EmptyState(
             icon: Icons.search_off,
             title: 'لا توجد نتائج',
-            message: _searchController.text.isNotEmpty || _hasActiveFilters()
-                ? 'لم يتم العثور على متبرعين تطابق البحث'
+            message: _hasActiveFilters() || _searchController.text.isNotEmpty
+                ? 'لم يتم العثور على متبرعين بهذه المواصفات'
                 : 'لم يتم إضافة أي متبرع بعد',
             actionLabel: _hasActiveFilters() ? 'مسح الفلاتر' : null,
-            onAction: _hasActiveFilters() ? _clearAllFilters : null,
+            onAction: _hasActiveFilters() ? _clearFilters : null,
           );
         }
 
         return RefreshIndicator(
           onRefresh: () => provider.loadDonors(),
-          child: Column(
-            children: [
-              // عدد النتائج
-              if (filteredDonors.length != allDonors.length)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  color: AppColors.info.withOpacity(0.1),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.filter_list, size: 16, color: AppColors.info),
-                      const SizedBox(width: 8),
-                      Text(
-                        'عرض ${filteredDonors.length} من ${allDonors.length} متبرع',
-                        style: TextStyle(
-                          color: AppColors.info,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              // القائمة
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(8),
-                  itemCount: filteredDonors.length,
-                  itemBuilder: (context, index) {
-                    final donor = filteredDonors[index];
-                    return ExpandableDonorCard(donor: donor);
-                  },
-                ),
-              ),
-            ],
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: filteredDonors.length,
+            itemBuilder: (context, index) {
+              final donor = filteredDonors[index];
+              return ExpandableDonorCard(
+                donor: donor,
+                showManagementActions: true, // صلاحيات الإدارة
+              );
+            },
           ),
         );
       },
     );
   }
-}
 
+  /// chip الفلتر
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    Color? color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (color ?? AppColors.primary)
+              : AppColors.background,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? (color ?? AppColors.primary)
+                : AppColors.divider,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.textPrimary,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// تطبيق الفلاتر
+  List<DonorModel> _applyFilters(List<DonorModel> donors) {
+    var filtered = donors;
+
+    // البحث النصي
+    if (_searchController.text.isNotEmpty) {
+      final query = _searchController.text.toLowerCase();
+      filtered = filtered
+          .where((d) =>
+              d.name.toLowerCase().contains(query) ||
+              d.phoneNumber.contains(query) ||
+              (d.phoneNumber2?.contains(query) ?? false) ||
+              (d.phoneNumber3?.contains(query) ?? false))
+          .toList();
+    }
+
+    // فصيلة الدم
+    if (_selectedBloodType != null) {
+      filtered =
+          filtered.where((d) => d.bloodType == _selectedBloodType).toList();
+    }
+
+    // المديرية
+    if (_selectedDistrict != null) {
+      filtered =
+          filtered.where((d) => d.district == _selectedDistrict).toList();
+    }
+
+    // الجنس
+    if (_selectedGender != null) {
+      filtered = filtered.where((d) => d.gender == _selectedGender).toList();
+    }
+
+    // الحالة
+    if (_selectedStatus != null && _selectedStatus != 'all') {
+      if (_selectedStatus == 'available') {
+        filtered = filtered.where((d) => !d.isSuspended).toList();
+      } else if (_selectedStatus == 'suspended') {
+        filtered = filtered.where((d) => d.isSuspended).toList();
+      }
+    }
+
+    // الترتيب
+    switch (_sortBy) {
+      case 'name':
+        filtered.sort((a, b) => a.name.compareTo(b.name));
+        break;
+      case 'date':
+        filtered.sort((a, b) {
+          final dateA = a.lastDonationDate ?? DateTime(2000);
+          final dateB = b.lastDonationDate ?? DateTime(2000);
+          return dateB.compareTo(dateA);
+        });
+        break;
+      case 'bloodType':
+        filtered.sort((a, b) => a.bloodType.compareTo(b.bloodType));
+        break;
+    }
+
+    return filtered;
+  }
+
+  /// التحقق من وجود فلاتر نشطة
+  bool _hasActiveFilters() {
+    return _selectedBloodType != null ||
+        _selectedDistrict != null ||
+        _selectedGender != null ||
+        (_selectedStatus != null && _selectedStatus != 'all');
+  }
+
+  /// مسح جميع الفلاتر
+  void _clearFilters() {
+    setState(() {
+      _selectedBloodType = null;
+      _selectedDistrict = null;
+      _selectedGender = null;
+      _selectedStatus = 'all';
+      _searchController.clear();
+    });
+  }
+
+  /// لون فصيلة الدم
+  Color _getBloodTypeColor(String bloodType) {
+    if (bloodType.contains('A') && !bloodType.contains('AB')) {
+      return AppColors.bloodTypeA;
+    }
+    if (bloodType.contains('B') && !bloodType.contains('AB')) {
+      return AppColors.bloodTypeB;
+    }
+    if (bloodType.contains('AB')) return AppColors.bloodTypeAB;
+    if (bloodType.contains('O')) return AppColors.bloodTypeO;
+    return AppColors.primary;
+  }
+}
