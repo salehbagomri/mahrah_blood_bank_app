@@ -26,7 +26,7 @@ class _BloodTypeDetailedReportScreenState
     super.initState();
     Future.microtask(() {
       context.read<DashboardProvider>().loadDashboardData();
-      context.read<DonorProvider>().loadDonors();
+      context.read<DonorProvider>().loadAllDonors();
     });
   }
 
@@ -49,7 +49,6 @@ class _BloodTypeDetailedReportScreenState
             icon: const Icon(Icons.refresh),
             onPressed: () {
               context.read<DashboardProvider>().refreshDashboard();
-              context.read<DonorProvider>().loadDonors();
             },
           ),
         ],
@@ -68,7 +67,7 @@ class _BloodTypeDetailedReportScreenState
               actionLabel: 'إعادة المحاولة',
               onAction: () {
                 dashboardProvider.loadDashboardData();
-                donorProvider.loadDonors();
+                donorProvider.loadAllDonors();
               },
             );
           }
@@ -89,9 +88,6 @@ class _BloodTypeDetailedReportScreenState
   }
 
   Widget _buildReportContent(stats, List<DonorModel> donors) {
-    // طباعة للتأكد من تحميل البيانات
-    print('📊 عدد المتبرعين المحملين: ${donors.length}');
-    
     // حساب توزيع فصائل الدم من البيانات الفعلية
     final bloodTypeDistribution = <String, Map<String, int>>{};
     
@@ -125,14 +121,6 @@ class _BloodTypeDetailedReportScreenState
         }
       }
     }
-    
-    // طباعة النتائج للتأكد
-    print('📊 توزيع فصائل الدم:');
-    bloodTypeDistribution.forEach((type, counts) {
-      if (counts['total']! > 0) {
-        print('  $type: ${counts['total']} (متاح: ${counts['available']}, موقوف: ${counts['suspended']})');
-      }
-    });
     
     final totalDonors = stats.totalDonors;
     final availableDonors = stats.availableDonors;
