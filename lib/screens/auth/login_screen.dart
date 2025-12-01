@@ -8,7 +8,7 @@ import '../../utils/validators.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/loading_widget.dart';
 import '../hospital/hospital_dashboard_screen.dart';
-import '../admin/admin_dashboard_screen.dart';
+import '../admin/enhanced_admin_dashboard_screen.dart';
 
 /// صفحة تسجيل الدخول للمستشفيات والأدمن
 class LoginScreen extends StatefulWidget {
@@ -253,7 +253,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (authProvider.isAdmin) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (_) => const AdminDashboardScreen(),
+            builder: (_) => const EnhancedAdminDashboardScreen(),
           ),
         );
       } else if (authProvider.isHospital) {
