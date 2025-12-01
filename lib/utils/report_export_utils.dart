@@ -184,9 +184,10 @@ class ReportExportUtils {
       );
 
       // حفظ ومشاركة الملف
+      final timestamp = _getTimestamp();
       return await _saveAndShareFile(
         pdf.save(),
-        'تقرير_${_sanitizeFileName(title)}.pdf',
+        'تقرير_${_sanitizeFileName(title)}_$timestamp.pdf',
       );
     } catch (e) {
       print('خطأ في تصدير PDF: $e');
@@ -292,9 +293,10 @@ class ReportExportUtils {
       final bytes = excel.encode();
       if (bytes == null) return false;
 
+      final timestamp = _getTimestamp();
       return await _saveAndShareFile(
         Future.value(Uint8List.fromList(bytes)),
-        'تقرير_${_sanitizeFileName(title)}.xlsx',
+        'تقرير_${_sanitizeFileName(title)}_$timestamp.xlsx',
       );
     } catch (e) {
       print('خطأ في تصدير Excel: $e');
@@ -328,6 +330,17 @@ class ReportExportUtils {
   /// تنظيف اسم الملف من الرموز غير المسموحة
   static String _sanitizeFileName(String fileName) {
     return fileName.replaceAll(RegExp(r'[^\u0600-\u06FFa-zA-Z0-9_-]'), '_');
+  }
+
+  /// الحصول على timestamp بصيغة HHmmssddMMyyyy
+  static String _getTimestamp() {
+    final now = DateTime.now();
+    return '${now.hour.toString().padLeft(2, '0')}'
+        '${now.minute.toString().padLeft(2, '0')}'
+        '${now.second.toString().padLeft(2, '0')}'
+        '${now.day.toString().padLeft(2, '0')}'
+        '${now.month.toString().padLeft(2, '0')}'
+        '${now.year}';
   }
 }
 
