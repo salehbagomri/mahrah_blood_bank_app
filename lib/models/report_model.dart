@@ -97,8 +97,18 @@ class ReportModel {
         return 'رقم خاطئ';
       case 'refuses_to_donate':
         return 'يرفض التبرع';
+      case 'number_busy':
+        return 'الرقم مشغول دائماً';
+      case 'no_answer':
+        return 'لا يرد على الاتصال';
+      case 'deceased':
+        return 'متوفى';
+      case 'moved_away':
+        return 'انتقل إلى منطقة أخرى';
+      case 'health_issues':
+        return 'مشاكل صحية';
       case 'other':
-        return 'أخرى';
+        return 'سبب آخر';
       default:
         return reason;
     }
