@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
@@ -35,6 +36,7 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
   String? _selectedBloodType;
   String? _selectedDistrict;
   String? _selectedGender;
+  DateTime? _lastDonationDate; // تاريخ آخر تبرع (اختياري)
   
   // Blood types
   final List<String> _bloodTypes = [
@@ -257,6 +259,64 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
                     maxLength: 200,
                   ),
                   
+                  const SizedBox(height: 16),
+                  
+                  // تاريخ آخر تبرع (اختياري)
+                  GestureDetector(
+                    onTap: _selectLastDonationDate,
+                    child: AbsorbPointer(
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          labelText: 'تاريخ آخر تبرع (${AppStrings.optional})',
+                          hintText: 'اضغط لاختيار التاريخ',
+                          prefixIcon: const Icon(
+                            Icons.calendar_today,
+                            color: AppColors.primary,
+                          ),
+                          suffixIcon: _lastDonationDate != null
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () {
+                                    setState(() {
+                                      _lastDonationDate = null;
+                                    });
+                                  },
+                                )
+                              : null,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: AppColors.divider,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                              width: 2,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: AppColors.background,
+                        ),
+                        controller: TextEditingController(
+                          text: _lastDonationDate != null
+                              ? DateFormat('yyyy-MM-dd').format(_lastDonationDate!)
+                              : '',
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  // ملاحظة توضيحية
+                  if (_lastDonationDate != null) ...[
+                    const SizedBox(height: 8),
+                    _buildDonationDateNote(),
+                  ],
+                  
                   const SizedBox(height: 24),
                   
                   // زر الحفظ
@@ -275,6 +335,90 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  /// اختيار تاريخ آخر تبرع
+  Future<void> _selectLastDonationDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      helpText: 'اختر تاريخ آخر تبرع',
+      cancelText: 'إلغاء',
+      confirmText: 'تأكيد',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _lastDonationDate = picked;
+      });
+    }
+  }
+
+  /// ملاحظة توضيحية لتاريخ التبرع
+  Widget _buildDonationDateNote() {
+    if (_lastDonationDate == null) return const SizedBox.shrink();
+
+    // حساب الفرق بين آخر تبرع والآن
+    final now = DateTime.now();
+    final sixMonthsFromDonation = _lastDonationDate!.add(
+      const Duration(days: 180),
+    );
+    final daysSinceDonation = now.difference(_lastDonationDate!).inDays;
+    final daysUntilAvailable = sixMonthsFromDonation.difference(now).inDays;
+
+    // تحديد الحالة
+    final bool willBeSuspended = daysUntilAvailable > 0;
+    final Color noteColor = willBeSuspended ? AppColors.warning : AppColors.success;
+    final IconData noteIcon = willBeSuspended ? Icons.pause_circle : Icons.check_circle;
+    
+    String noteText;
+    if (willBeSuspended) {
+      noteText = 'سيتم إيقاف المتبرع تلقائياً لمدة $daysUntilAvailable يوم (${(daysUntilAvailable / 30).round()} شهر تقريباً)';
+    } else {
+      noteText = 'المتبرع متاح للتبرع (مر ${(daysSinceDonation / 30).round()} شهر من آخر تبرع)';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: noteColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: noteColor.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(noteIcon, color: noteColor, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              noteText,
+              style: TextStyle(
+                color: noteColor,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -298,6 +442,23 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
         ? null
         : Helpers.formatPhoneNumber(_phone3Controller.text);
 
+    // حساب حالة الإيقاف بناءً على تاريخ آخر تبرع
+    DateTime? suspendedUntil;
+    bool isAvailable = true;
+    
+    if (_lastDonationDate != null) {
+      final sixMonthsFromDonation = _lastDonationDate!.add(
+        const Duration(days: 180),
+      );
+      final now = DateTime.now();
+      
+      // إذا لم تمر 6 أشهر بعد، يكون المتبرع موقوفاً
+      if (now.isBefore(sixMonthsFromDonation)) {
+        suspendedUntil = sixMonthsFromDonation;
+        isAvailable = false; // غير متاح لأنه موقوف
+      }
+    }
+
     // إنشاء كائن المتبرع
     final donor = DonorModel(
       id: '', // سيتم إنشاؤه تلقائياً في قاعدة البيانات
@@ -312,7 +473,9 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
       notes: _notesController.text.trim().isEmpty
           ? null
           : _notesController.text.trim(),
-      isAvailable: true,
+      lastDonationDate: _lastDonationDate,
+      suspendedUntil: suspendedUntil,
+      isAvailable: isAvailable,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -325,9 +488,14 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
     if (success) {
       // عرض رسالة نجاح
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(AppStrings.donorAddedSuccessfully),
+        SnackBar(
+          content: Text(
+            donor.isSuspended
+                ? 'تم إضافة المتبرع بنجاح (موقوف حتى ${DateFormat('yyyy-MM-dd').format(donor.suspendedUntil!)})'
+                : AppStrings.donorAddedSuccessfully,
+          ),
           backgroundColor: AppColors.success,
+          duration: const Duration(seconds: 4),
         ),
       );
 
