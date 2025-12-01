@@ -5,7 +5,7 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../providers/donor_provider.dart';
 import '../../widgets/custom_dropdown.dart';
-import '../../widgets/donor_card.dart';
+import '../../widgets/expandable_donor_card.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
 
@@ -178,9 +178,9 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen> {
                         itemCount: provider.searchResults.length,
                         itemBuilder: (context, index) {
                           final donor = provider.searchResults[index];
-                          return DonorCard(
+                          return ExpandableDonorCard(
                             donor: donor,
-                            showActions: true,
+                            showManagementActions: false, // للمستخدم العادي
                           );
                         },
                       ),
