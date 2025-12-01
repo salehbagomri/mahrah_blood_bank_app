@@ -2,16 +2,61 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../constants/app_colors.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../services/supabase_service.dart';
 
 /// Header لوحة المستشفى مع تدرج لوني وbadge
-class DashboardHeader extends StatelessWidget {
+class DashboardHeader extends StatefulWidget {
   const DashboardHeader({super.key});
+
+  @override
+  State<DashboardHeader> createState() => _DashboardHeaderState();
+}
+
+class _DashboardHeaderState extends State<DashboardHeader> {
+  final _supabaseService = SupabaseService();
+  String? _hospitalName;
+  String? _hospitalEmail;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHospitalInfo();
+  }
+
+  Future<void> _loadHospitalInfo() async {
+    try {
+      final userId = _supabaseService.currentUser?.id;
+      if (userId == null) return;
+
+      final response = await _supabaseService.client
+          .from('hospitals')
+          .select('name, email')
+          .eq('id', userId)
+          .single();
+
+      if (mounted) {
+        setState(() {
+          _hospitalName = response['name'] as String?;
+          _hospitalEmail = response['email'] as String?;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
-        final email = authProvider.currentUser?.email ?? 'المستشفى';
+        final email = _hospitalEmail ?? authProvider.currentUser?.email ?? 'المستشفى';
+        final name = _hospitalName ?? 'المستشفى';
 
         return Container(
           padding: const EdgeInsets.all(20),
@@ -57,19 +102,32 @@ class DashboardHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // مرحباً
                     Text(
                       'مرحباً',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white70,
-                            fontSize: 13,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 12,
                           ),
                     ),
                     const SizedBox(height: 4),
+                    // اسم المستشفى
                     Text(
-                      email.length > 30 ? '${email.substring(0, 27)}...' : email,
+                      _isLoading ? '...' : name,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    // الإيميل
+                    Text(
+                      email.length > 30 ? '${email.substring(0, 27)}...' : email,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 11,
                           ),
                       overflow: TextOverflow.ellipsis,
                     ),
