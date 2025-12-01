@@ -259,7 +259,6 @@ class _AddDonorScreenState extends State<AddDonorScreen> {
                           hintText: 'اضغط لاختيار التاريخ',
                           prefixIcon: const Icon(
                             Icons.calendar_today,
-                            color: AppColors.primary,
                           ),
                           suffixIcon: _lastDonationDate != null
                               ? IconButton(
