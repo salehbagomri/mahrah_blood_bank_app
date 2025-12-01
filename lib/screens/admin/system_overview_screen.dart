@@ -30,7 +30,8 @@ class _SystemOverviewScreenState extends State<SystemOverviewScreen> {
   @override
   void initState() {
     super.initState();
-    _loadOverviewData();
+    // تأجيل التحميل لما بعد بناء الواجهة
+    Future.microtask(() => _loadOverviewData());
   }
 
   Future<void> _loadOverviewData() async {

@@ -36,7 +36,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDashboardData();
+    // تأجيل التحميل لما بعد بناء الواجهة
+    Future.microtask(() => _loadDashboardData());
   }
 
   Future<void> _loadDashboardData() async {
