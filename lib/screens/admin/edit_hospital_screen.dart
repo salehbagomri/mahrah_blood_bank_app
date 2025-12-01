@@ -12,10 +12,7 @@ import '../../widgets/loading_widget.dart';
 class EditHospitalScreen extends StatefulWidget {
   final HospitalModel hospital;
 
-  const EditHospitalScreen({
-    super.key,
-    required this.hospital,
-  });
+  const EditHospitalScreen({super.key, required this.hospital});
 
   @override
   State<EditHospitalScreen> createState() => _EditHospitalScreenState();
@@ -50,8 +47,7 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
     super.initState();
     _nameController = TextEditingController(text: widget.hospital.name);
     _emailController = TextEditingController(text: widget.hospital.email);
-    _phoneController =
-        TextEditingController(text: widget.hospital.phoneNumber);
+    _phoneController = TextEditingController(text: widget.hospital.phoneNumber);
     _selectedDistrict = widget.hospital.district;
   }
 
@@ -164,7 +160,7 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
                                   gradient: LinearGradient(
                                     colors: [
                                       AppColors.primary,
-                                      AppColors.primaryDark
+                                      AppColors.primaryDark,
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(8),
@@ -236,6 +232,7 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
                   // المديرية
                   CustomDropdown(
                     label: 'المديرية',
+                    hint: 'اختر المديرية',
                     value: _selectedDistrict,
                     items: _districts,
                     onChanged: (value) {
@@ -329,4 +326,3 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
     );
   }
 }
-
