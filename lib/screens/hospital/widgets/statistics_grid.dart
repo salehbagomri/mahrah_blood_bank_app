@@ -7,10 +7,7 @@ import 'stat_card.dart';
 class StatisticsGrid extends StatelessWidget {
   final DashboardStatisticsModel statistics;
 
-  const StatisticsGrid({
-    super.key,
-    required this.statistics,
-  });
+  const StatisticsGrid({super.key, required this.statistics});
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +16,9 @@ class StatisticsGrid extends StatelessWidget {
       children: [
         Text(
           'الإحصائيات السريعة',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         GridView.count(

@@ -8,7 +8,7 @@ import '../../providers/dashboard_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
 import 'manage_donors_hospital_screen.dart';
-import 'blood_type_report_screen.dart';
+import 'reports_hub_screen.dart';
 import 'widgets/dashboard_header.dart';
 import 'widgets/statistics_grid.dart';
 import 'widgets/enhanced_main_card.dart';
@@ -204,7 +204,7 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => const BloodTypeReportScreen(),
+                    builder: (_) => const ReportsHubScreen(),
                   ),
                 );
               },
