@@ -14,7 +14,7 @@ import 'widgets/admin_statistics_grid.dart';
 import 'widgets/admin_action_card.dart';
 import 'enhanced_manage_hospitals_screen.dart';
 import 'review_reports_screen.dart';
-import 'manage_donors_screen.dart';
+import 'enhanced_manage_donors_screen.dart';
 import 'system_overview_screen.dart';
 
 /// لوحة تحكم الأدمن المحسّنة
@@ -209,7 +209,7 @@ class _EnhancedAdminDashboardScreenState
           icon: Icons.people,
           color: AppColors.primary,
           badgeCount: _suspendedDonors,
-          onTap: () => _navigateTo(const ManageDonorsScreen()),
+          onTap: () => _navigateTo(const EnhancedManageDonorsScreen()),
         ),
         const SizedBox(height: 12),
 
