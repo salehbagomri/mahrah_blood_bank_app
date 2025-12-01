@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../../constants/app_colors.dart';
 import '../../../providers/dashboard_provider.dart';
 import '../../../providers/donor_provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../services/supabase_service.dart';
 import '../../../widgets/loading_widget.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../utils/report_export_utils.dart';
@@ -20,6 +22,7 @@ class BloodTypeDetailedReportScreen extends StatefulWidget {
 class _BloodTypeDetailedReportScreenState
     extends State<BloodTypeDetailedReportScreen> {
   bool _isExporting = false;
+  String? _hospitalName;
 
   @override
   void initState() {
@@ -27,7 +30,30 @@ class _BloodTypeDetailedReportScreenState
     Future.microtask(() {
       context.read<DashboardProvider>().loadDashboardData();
       context.read<DonorProvider>().loadAllDonors();
+      _loadHospitalName();
     });
+  }
+
+  Future<void> _loadHospitalName() async {
+    try {
+      final userId = context.read<AuthProvider>().currentUser?.id;
+      if (userId == null) return;
+
+      final response = await SupabaseService()
+          .client
+          .from('hospitals')
+          .select('name')
+          .eq('id', userId)
+          .single();
+
+      if (mounted) {
+        setState(() {
+          _hospitalName = response['name'] as String?;
+        });
+      }
+    } catch (e) {
+      // تجاهل الخطأ
+    }
   }
 
   @override
@@ -431,6 +457,7 @@ class _BloodTypeDetailedReportScreenState
         headers: headers,
         data: data,
         summary: summary,
+        createdBy: _hospitalName,
       );
 
       if (mounted) {
@@ -481,6 +508,7 @@ class _BloodTypeDetailedReportScreenState
         headers: headers,
         data: data,
         summary: summary,
+        createdBy: _hospitalName,
       );
 
       if (mounted) {

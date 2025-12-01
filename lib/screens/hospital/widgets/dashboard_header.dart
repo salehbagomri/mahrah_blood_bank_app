@@ -55,7 +55,8 @@ class _DashboardHeaderState extends State<DashboardHeader> {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, _) {
-        final email = _hospitalEmail ?? authProvider.currentUser?.email ?? 'المستشفى';
+        final email =
+            _hospitalEmail ?? authProvider.currentUser?.email ?? 'المستشفى';
         final name = _hospitalName ?? 'المستشفى';
 
         return Container(
@@ -106,29 +107,31 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                     Text(
                       'مرحباً',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 12,
-                          ),
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 12,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     // اسم المستشفى
                     Text(
                       _isLoading ? '...' : name,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     // الإيميل
                     Text(
-                      email.length > 30 ? '${email.substring(0, 27)}...' : email,
+                      email.length > 30
+                          ? '${email.substring(0, 27)}...'
+                          : email,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 11,
-                          ),
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 11,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],

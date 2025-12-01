@@ -14,6 +14,7 @@ class ReportExportUtils {
     required List<List<String>> headers,
     required List<List<String>> data,
     Map<String, String>? summary,
+    String? createdBy,
   }) async {
     try {
       final pdf = pw.Document();
@@ -157,6 +158,19 @@ class ReportExportUtils {
                 ),
                 textAlign: pw.TextAlign.center,
               ),
+              if (createdBy != null) ...[
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  'المستخدم: $createdBy',
+                  style: pw.TextStyle(
+                    fontSize: 10,
+                    color: PdfColors.grey700,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                  textAlign: pw.TextAlign.center,
+                ),
+              ],
+              pw.SizedBox(height: 4),
               pw.Text(
                 'التاريخ: ${DateTime.now().toString().split('.')[0]}',
                 style: pw.TextStyle(
@@ -188,6 +202,7 @@ class ReportExportUtils {
     required List<String> headers,
     required List<List<dynamic>> data,
     Map<String, String>? summary,
+    String? createdBy,
   }) async {
     try {
       final excel = excel_pkg.Excel.createExcel();
@@ -257,6 +272,22 @@ class ReportExportUtils {
         }
         currentRow++;
       }
+
+      // إضافة تذييل
+      currentRow += 2; // مسافة فارغة
+      
+      sheet.cell(excel_pkg.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow))
+          .value = excel_pkg.TextCellValue('تم إنشاء التقرير بواسطة تطبيق بنك الدم - المهرة');
+      currentRow++;
+      
+      if (createdBy != null) {
+        sheet.cell(excel_pkg.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow))
+            .value = excel_pkg.TextCellValue('المستخدم: $createdBy');
+        currentRow++;
+      }
+      
+      sheet.cell(excel_pkg.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: currentRow))
+          .value = excel_pkg.TextCellValue('التاريخ: ${DateTime.now().toString().split('.')[0]}');
 
       // حفظ ومشاركة الملف
       final bytes = excel.encode();
