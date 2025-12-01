@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../constants/app_colors.dart';
 import '../../../providers/dashboard_provider.dart';
+import '../../../providers/donor_provider.dart';
 import '../../../widgets/loading_widget.dart';
 import '../../../widgets/empty_state.dart';
 import '../../../utils/report_export_utils.dart';
+import '../../../models/donor_model.dart';
 
 /// تقرير فصائل الدم المفصّل مع خيارات التصدير
 class BloodTypeDetailedReportScreen extends StatefulWidget {
@@ -24,6 +26,7 @@ class _BloodTypeDetailedReportScreenState
     super.initState();
     Future.microtask(() {
       context.read<DashboardProvider>().loadDashboardData();
+      context.read<DonorProvider>().loadAllDonors();
     });
   }
 
@@ -50,23 +53,26 @@ class _BloodTypeDetailedReportScreenState
           ),
         ],
       ),
-      body: Consumer<DashboardProvider>(
-        builder: (context, provider, _) {
-          if (provider.isLoading) {
+      body: Consumer2<DashboardProvider, DonorProvider>(
+        builder: (context, dashboardProvider, donorProvider, _) {
+          if (dashboardProvider.isLoading || donorProvider.isLoading) {
             return const LoadingWidget(message: 'جاري تحميل التقرير...');
           }
 
-          if (provider.hasError) {
+          if (dashboardProvider.hasError) {
             return EmptyState(
               icon: Icons.error_outline,
               title: 'حدث خطأ',
-              message: provider.errorMessage ?? 'فشل تحميل التقرير',
+              message: dashboardProvider.errorMessage ?? 'فشل تحميل التقرير',
               actionLabel: 'إعادة المحاولة',
-              onAction: () => provider.loadDashboardData(),
+              onAction: () {
+                dashboardProvider.loadDashboardData();
+                donorProvider.loadAllDonors();
+              },
             );
           }
 
-          final stats = provider.statistics;
+          final stats = dashboardProvider.statistics;
           if (stats == null) {
             return const EmptyState(
               icon: Icons.dashboard,
@@ -75,18 +81,17 @@ class _BloodTypeDetailedReportScreenState
             );
           }
 
-          return _buildReportContent(stats);
+          return _buildReportContent(stats, donorProvider.donors);
         },
       ),
     );
   }
 
-  Widget _buildReportContent(stats) {
-    // حساب توزيع فصائل الدم من البيانات
+  Widget _buildReportContent(stats, List<DonorModel> donors) {
+    // حساب توزيع فصائل الدم من البيانات الفعلية
     final bloodTypeDistribution = <String, Map<String, int>>{};
     
-    // افتراضياً، سنستخدم البيانات من stats
-    // يمكن تحسين هذا لاحقاً بحسب البيانات الفعلية
+    // تهيئة جميع الفصائل بأصفار
     final bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
     
     for (var type in bloodTypes) {
@@ -97,8 +102,25 @@ class _BloodTypeDetailedReportScreenState
       };
     }
 
-    // هنا يجب جلب البيانات الفعلية من provider
-    // لكن للتبسيط، سنستخدم بيانات توضيحية
+    // حساب البيانات الفعلية من قائمة المتبرعين
+    for (var donor in donors) {
+      final bloodType = donor.bloodType;
+      
+      if (bloodTypeDistribution.containsKey(bloodType)) {
+        // زيادة العدد الإجمالي
+        bloodTypeDistribution[bloodType]!['total'] = 
+            (bloodTypeDistribution[bloodType]!['total'] ?? 0) + 1;
+        
+        // زيادة عدد المتاحين أو الموقوفين
+        if (donor.isSuspended) {
+          bloodTypeDistribution[bloodType]!['suspended'] = 
+              (bloodTypeDistribution[bloodType]!['suspended'] ?? 0) + 1;
+        } else if (donor.isAvailable) {
+          bloodTypeDistribution[bloodType]!['available'] = 
+              (bloodTypeDistribution[bloodType]!['available'] ?? 0) + 1;
+        }
+      }
+    }
     
     final totalDonors = stats.totalDonors;
     final availableDonors = stats.availableDonors;
@@ -122,7 +144,7 @@ class _BloodTypeDetailedReportScreenState
               const SizedBox(height: 20),
 
               // أزرار التصدير
-              _buildExportButtons(bloodTypeDistribution, stats),
+              _buildExportButtons(bloodTypeDistribution, stats, donors),
 
               const SizedBox(height: 20),
             ],
@@ -332,6 +354,7 @@ class _BloodTypeDetailedReportScreenState
   Widget _buildExportButtons(
     Map<String, Map<String, int>> distribution,
     stats,
+    List<DonorModel> donors,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -347,7 +370,7 @@ class _BloodTypeDetailedReportScreenState
           children: [
             Expanded(
               child: ElevatedButton.icon(
-                onPressed: () => _exportToPdf(distribution, stats),
+                onPressed: () => _exportToPdf(distribution, stats, donors),
                 icon: const Icon(Icons.picture_as_pdf),
                 label: const Text('تصدير PDF'),
                 style: ElevatedButton.styleFrom(
@@ -360,7 +383,7 @@ class _BloodTypeDetailedReportScreenState
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton.icon(
-                onPressed: () => _exportToExcel(distribution, stats),
+                onPressed: () => _exportToExcel(distribution, stats, donors),
                 icon: const Icon(Icons.table_chart),
                 label: const Text('تصدير Excel'),
                 style: ElevatedButton.styleFrom(
@@ -379,6 +402,7 @@ class _BloodTypeDetailedReportScreenState
   Future<void> _exportToPdf(
     Map<String, Map<String, int>> distribution,
     stats,
+    List<DonorModel> donors,
   ) async {
     setState(() => _isExporting = true);
 
@@ -429,6 +453,7 @@ class _BloodTypeDetailedReportScreenState
   Future<void> _exportToExcel(
     Map<String, Map<String, int>> distribution,
     stats,
+    List<DonorModel> donors,
   ) async {
     setState(() => _isExporting = true);
 
