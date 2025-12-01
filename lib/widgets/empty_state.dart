@@ -35,27 +35,23 @@ class EmptyState extends StatelessWidget {
                 color: AppColors.background,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 60,
-                color: AppColors.textHint,
-              ),
+              child: Icon(icon, size: 60, color: AppColors.textHint),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // العنوان
             Text(
               title,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // الرسالة - قابلة للتمرير
             ConstrainedBox(
               constraints: BoxConstraints(
@@ -65,20 +61,17 @@ class EmptyState extends StatelessWidget {
                 child: Text(
                   message,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                    color: AppColors.textSecondary,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
             ),
-            
+
             // زر الإجراء (اختياري)
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: onAction,
-                child: Text(actionLabel!),
-              ),
+              ElevatedButton(onPressed: onAction, child: Text(actionLabel!)),
             ],
           ],
         ),
@@ -86,4 +79,3 @@ class EmptyState extends StatelessWidget {
     );
   }
 }
-

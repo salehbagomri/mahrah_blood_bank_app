@@ -114,6 +114,7 @@ class DonorService {
   }
 
   /// البحث عن متبرع برقم الهاتف (يدعم مع/بدون الرمز الدولي + أرقام متعددة)
+  /// ملاحظة: إذا وُجد أكثر من متبرع بنفس الرقم، يُرجع الأول (الأحدث)
   Future<DonorModel?> findDonorByPhone(String phoneNumber) async {
     try {
       // تنظيف الرقم
@@ -132,6 +133,7 @@ class DonorService {
       }
 
       // البحث في جميع الأرقام (الرئيسي والإضافية)
+      // استخدام limit(1) بدلاً من maybeSingle() للتعامل مع الأرقام المتكررة
       var response = await _client
           .from('donors')
           .select()
@@ -143,10 +145,11 @@ class DonorService {
             'phone_number_3.eq.$cleanPhone,'
             'phone_number_3.eq.+967$cleanPhone',
           )
-          .maybeSingle();
+          .order('created_at', ascending: false) // الأحدث أولاً
+          .limit(1);
 
       // إذا لم نجد، نحاول بدون صفر أول
-      if (response == null && cleanPhone.startsWith('0')) {
+      if (response.isEmpty && cleanPhone.startsWith('0')) {
         final phoneWithoutZero = cleanPhone.substring(1);
         response = await _client
             .from('donors')
@@ -159,14 +162,15 @@ class DonorService {
               'phone_number_3.eq.$phoneWithoutZero,'
               'phone_number_3.eq.+967$phoneWithoutZero',
             )
-            .maybeSingle();
+            .order('created_at', ascending: false)
+            .limit(1);
       }
 
-      if (response == null) {
+      if (response.isEmpty) {
         return null;
       }
 
-      return DonorModel.fromJson(response);
+      return DonorModel.fromJson(response.first as Map<String, dynamic>);
     } catch (e) {
       return null;
     }
