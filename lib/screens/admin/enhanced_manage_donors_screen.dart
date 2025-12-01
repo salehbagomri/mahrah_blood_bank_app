@@ -325,7 +325,7 @@ class _EnhancedManageDonorsScreenState
                   'الحالة',
                   _selectedStatus,
                   ['all', 'available', 'suspended'],
-                  (value) => setState(() => _selectedStatus = value),
+                  (value) => setState(() => _selectedStatus = value ?? 'all'),
                   displayNames: {
                     'all': 'الكل',
                     'available': 'متاح',
@@ -598,10 +598,7 @@ class _EnhancedManageDonorsScreenState
                   itemCount: filteredDonors.length,
                   itemBuilder: (context, index) {
                     final donor = filteredDonors[index];
-                    return ExpandableDonorCard(
-                      donor: donor,
-                      isAdminView: true, // صلاحيات كاملة للأدمن
-                    );
+                    return ExpandableDonorCard(donor: donor);
                   },
                 ),
               ),
