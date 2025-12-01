@@ -187,7 +187,7 @@ class ReportExportUtils {
       final timestamp = _getTimestamp();
       return await _saveAndShareFile(
         pdf.save(),
-        'تقرير_${_sanitizeFileName(title)}_$timestamp.pdf',
+        '${_sanitizeFileName(title)}_$timestamp.pdf',
       );
     } catch (e) {
       print('خطأ في تصدير PDF: $e');
@@ -296,7 +296,7 @@ class ReportExportUtils {
       final timestamp = _getTimestamp();
       return await _saveAndShareFile(
         Future.value(Uint8List.fromList(bytes)),
-        'تقرير_${_sanitizeFileName(title)}_$timestamp.xlsx',
+        '${_sanitizeFileName(title)}_$timestamp.xlsx',
       );
     } catch (e) {
       print('خطأ في تصدير Excel: $e');
@@ -332,15 +332,15 @@ class ReportExportUtils {
     return fileName.replaceAll(RegExp(r'[^\u0600-\u06FFa-zA-Z0-9_-]'), '_');
   }
 
-  /// الحصول على timestamp بصيغة HHmmssddMMyyyy
+  /// الحصول على timestamp بصيغة HHmm_DDMMYYYY
   static String _getTimestamp() {
     final now = DateTime.now();
-    return '${now.hour.toString().padLeft(2, '0')}'
-        '${now.minute.toString().padLeft(2, '0')}'
-        '${now.second.toString().padLeft(2, '0')}'
-        '${now.day.toString().padLeft(2, '0')}'
+    final time = '${now.hour.toString().padLeft(2, '0')}'
+        '${now.minute.toString().padLeft(2, '0')}';
+    final date = '${now.day.toString().padLeft(2, '0')}'
         '${now.month.toString().padLeft(2, '0')}'
         '${now.year}';
+    return '${time}_$date';
   }
 }
 
