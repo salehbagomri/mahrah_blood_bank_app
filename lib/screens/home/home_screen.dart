@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
@@ -60,6 +61,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
+        // زر دخول الإدارة في AppBar
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
+            child: _buildAdminButton(context),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -163,20 +171,124 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
 
-                    // كارد تسجيل دخول الإدارة
-                    _buildAdminLoginCard(),
+                    // Footer - معلومات المطور
+                    _buildDeveloperFooter(context),
+
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 24),
             ],
           ),
         ),
       ),
     );
+  }
+
+  /// زر دخول الإدارة الصغير في AppBar (أيقونة فقط)
+  Widget _buildAdminButton(BuildContext context) {
+    return IconButton(
+      onPressed: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      },
+      icon: const Icon(
+        Icons.admin_panel_settings,
+        color: Colors.white,
+        size: 28,
+      ),
+      tooltip: 'دخول الإدارة',
+    );
+  }
+
+  /// Footer - معلومات المطور (بدون مربع)
+  Widget _buildDeveloperFooter(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Column(
+        children: [
+          // خط فاصل صغير
+          Container(
+            width: 40,
+            height: 2,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // النص الرئيسي: صنع بحب ❤️ لأهالي المهرة
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'صُنع بحب',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(
+                Icons.favorite,
+                color: Colors.red,
+                size: 16,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'لأهالي المهرة',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          // اسم المطور مع الرابط (بدون خط ووزن عادي)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'بواسطة',
+                style: TextStyle(
+                  color: Colors.grey.shade500,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(width: 4),
+              InkWell(
+                onTap: () => _launchURL('https://www.bagomri.com'),
+                child: Text(
+                  'Saleh Bagomri',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// فتح رابط الموقع
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   /// سلايدر التوعية
@@ -281,85 +393,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// كارد تسجيل دخول الإدارة
-  Widget _buildAdminLoginCard() {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.deepPurple.shade400, Colors.deepPurple.shade600],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.deepPurple.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const LoginScreen()));
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.admin_panel_settings,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'دخول الإدارة',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'للمستشفيات ومسؤولي النظام',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.white.withOpacity(0.8),
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// شريحة توعية

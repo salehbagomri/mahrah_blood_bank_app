@@ -380,26 +380,29 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: _buildContactButton(
+                    icon: Icons.phone,
+                    label: 'اتصال',
+                    color: AppColors.success,
                     onPressed: () => Helpers.makePhoneCall(_donor!.phoneNumber),
-                    icon: const Icon(Icons.phone, size: 18),
-                    label: const Text('اتصال'),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: _buildContactButton(
+                    icon: Icons.chat,
+                    label: 'واتساب',
+                    color: const Color(0xFF25D366),
                     onPressed: () => Helpers.openWhatsApp(_donor!.phoneNumber),
-                    icon: const Icon(Icons.chat, size: 18),
-                    label: const Text('واتساب'),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: _buildContactButton(
+                    icon: Icons.visibility,
+                    label: 'الملف',
+                    color: AppColors.primary,
                     onPressed: _viewDonorFullProfile,
-                    icon: const Icon(Icons.visibility, size: 18),
-                    label: const Text('الملف'),
                   ),
                 ),
               ],
@@ -420,6 +423,46 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     if (!_donor!.isActive) return AppColors.error;
     if (_donor!.isSuspended) return AppColors.warning;
     return AppColors.success;
+  }
+
+  /// زر اتصال مخصص (أيقونة بالأعلى ونص بالأسفل)
+  Widget _buildContactButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+            borderRadius: BorderRadius.circular(12),
+            color: color.withOpacity(0.05),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 26),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   /// سجل البلاغات السابقة
@@ -525,91 +568,158 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
   /// الإجراءات السريعة
   Widget _buildQuickActions() {
     return Card(
-      color: AppColors.primary.withOpacity(0.05),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              AppColors.primary.withOpacity(0.08),
+              AppColors.primary.withOpacity(0.02),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.flash_on, color: AppColors.primary),
-                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.flash_on,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
                 Text(
-                  'إجراء سريع',
+                  'إجراءات سريعة',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
+                        fontSize: 18,
                       ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-            // زر: قبول + تعديل البيانات
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _approveAndEdit,
-                icon: const Icon(Icons.edit),
-                label: const Text('قبول + تعديل البيانات'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
+            // زر: قبول + تعديل البيانات (الأهم)
+            _buildActionButton(
+              onPressed: _approveAndEdit,
+              icon: Icons.edit,
+              label: 'قبول + تعديل البيانات',
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              isElevated: true,
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
             // زر: قبول + حذف نهائي (للحالات الحرجة)
-            if (widget.report.priority == 'critical')
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _approveAndDelete,
-                  icon: const Icon(Icons.delete_forever),
-                  label: const Text('قبول + حذف نهائي'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.error,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
+            if (widget.report.priority == 'critical') ...[
+              _buildActionButton(
+                onPressed: _approveAndDelete,
+                icon: Icons.delete_forever,
+                label: 'قبول + حذف نهائي',
+                backgroundColor: AppColors.error,
+                foregroundColor: Colors.white,
+                isElevated: true,
               ),
-
-            const SizedBox(height: 10),
+              const SizedBox(height: 12),
+            ],
 
             // زر: قبول فقط
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _approveOnly,
-                icon: const Icon(Icons.check),
-                label: const Text('قبول فقط (بدون إجراء)'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.success,
-                  side: BorderSide(color: AppColors.success),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
+            _buildActionButton(
+              onPressed: _approveOnly,
+              icon: Icons.check_circle_outline,
+              label: 'قبول فقط (بدون إجراء)',
+              backgroundColor: Colors.transparent,
+              foregroundColor: AppColors.success,
+              borderColor: AppColors.success,
+              isElevated: false,
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
             // زر: رفض البلاغ
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _rejectReport,
-                icon: const Icon(Icons.close),
-                label: const Text('رفض البلاغ'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.error,
-                  side: BorderSide(color: AppColors.error),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-              ),
+            _buildActionButton(
+              onPressed: _rejectReport,
+              icon: Icons.cancel_outlined,
+              label: 'رفض البلاغ',
+              backgroundColor: Colors.transparent,
+              foregroundColor: AppColors.error,
+              borderColor: AppColors.error,
+              isElevated: false,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// بناء زر إجراء مخصص
+  Widget _buildActionButton({
+    required VoidCallback onPressed,
+    required IconData icon,
+    required String label,
+    required Color backgroundColor,
+    required Color foregroundColor,
+    Color? borderColor,
+    required bool isElevated,
+  }) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: isElevated
+            ? [
+                BoxShadow(
+                  color: backgroundColor.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
+      ),
+      child: Material(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: borderColor != null
+                  ? Border.all(color: borderColor, width: 2)
+                  : null,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: foregroundColor, size: 22),
+                const SizedBox(width: 10),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: foregroundColor,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
