@@ -287,24 +287,31 @@ if (provider.hasError) {
 
 ## 🔥 Firebase Crashlytics
 
-### التهيئة الأولية
+### ✅ التهيئة مكتملة!
 
-**1. إضافة ملفات Firebase:**
+**Firebase Project**: `mahrah-blood-bank`
+**Package Name**: `com.bagomri.mahrahbloodbank`
 
-**Android** (`android/app/google-services.json`):
-```bash
-# احصل على الملف من Firebase Console
-# https://console.firebase.google.com
-# Project Settings > General > Your apps > Add Android app
+**1. ملفات Firebase المُضافة:**
+
+- ✅ **Android**: `android/app/google-services.json`
+- ✅ **iOS**: `ios/Runner/GoogleService-Info.plist`
+
+**2. تكوين Gradle:**
+
+تم تحديث `android/app/build.gradle.kts`:
+```kotlin
+plugins {
+    id("com.google.gms.google-services")
+}
+
+android {
+    namespace = "com.bagomri.mahrahbloodbank"
+    applicationId = "com.bagomri.mahrahbloodbank"
+}
 ```
 
-**iOS** (`ios/Runner/GoogleService-Info.plist`):
-```bash
-# احصل على الملف من Firebase Console
-# Project Settings > General > Your apps > Add iOS app
-```
-
-**2. تم التهيئة في `main.dart`:**
+**3. التهيئة في `main.dart`:**
 ```dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

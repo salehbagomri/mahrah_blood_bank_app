@@ -1,4 +1,4 @@
-package com.mahrah.mahrah_blood_bank
+package com.bagomri.mahrahbloodbank
 
 import io.flutter.embedding.android.FlutterActivity
 

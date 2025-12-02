@@ -3,10 +3,12 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    // Google Services plugin for Firebase
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.mahrah.mahrah_blood_bank"
+    namespace = "com.bagomri.mahrahbloodbank"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -20,11 +22,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.mahrah.mahrah_blood_bank"
+        applicationId = "com.bagomri.mahrahbloodbank"
         minSdk = flutter.minSdkVersion  // Android 5.0+ support
         targetSdk = 34  // Latest Android API
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "2.0.0"
     }
 
     buildTypes {

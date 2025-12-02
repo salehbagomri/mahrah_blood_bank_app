@@ -167,6 +167,9 @@ await FirebaseErrorLogger.logError(
 | `donor_service.dart` | إضافة timeout + retry |
 | `main.dart` | تهيئة Firebase |
 | `pubspec.yaml` | إضافة dependencies |
+| `android/app/build.gradle.kts` | تكوين Firebase + Package name |
+| `android/settings.gradle.kts` | Google Services plugin |
+| `android/app/src/.../MainActivity.kt` | Package name update |
 
 ---
 
@@ -197,14 +200,16 @@ await FirebaseErrorLogger.logError(
 
 | البند | القيمة |
 |------|--------|
-| ملفات جديدة | 5 |
-| ملفات محدثة | 6+ |
+| ملفات جديدة | 5 + 2 Firebase config |
+| ملفات محدثة | 9 ملفات |
 | أسطر كود جديدة | ~1,055 |
 | Providers محسّنة | 4 |
 | Services محسّنة | 1 (يمكن المزيد) |
 | أنواع أخطاء مدعومة | 9 |
 | Dependencies جديدة | 2 (Firebase) |
 | Build APK | ✅ 60.0 MB |
+| Firebase Project | ✅ مُهيأ ومُفعّل |
+| Package Name | ✅ موحّد: com.bagomri.mahrahbloodbank |
 
 ---
 
@@ -225,26 +230,36 @@ await FirebaseErrorLogger.logError(
 
 ## 🔥 Firebase Crashlytics - التفعيل
 
-### ⚠️ ملاحظة مهمة:
-Firebase Crashlytics **مُعد ومجهز** لكنه **يحتاج ملفات التكوين** لكي يعمل:
+### ✅ تم التهيئة بالكامل!
 
-**للـ Android:**
-1. اذهب إلى [Firebase Console](https://console.firebase.google.com)
-2. أنشئ مشروع جديد (أو استخدم موجود)
-3. أضف Android App
-4. حمّل `google-services.json`
-5. ضعه في: `android/app/google-services.json`
+**Firebase Project**: `mahrah-blood-bank` (Project ID: `738636158998`)
 
-**للـ iOS:**
-1. في نفس المشروع على Firebase
-2. أضف iOS App
-3. حمّل `GoogleService-Info.plist`
-4. ضعه في: `ios/Runner/GoogleService-Info.plist`
+**ملفات التكوين المُضافة:**
+- ✅ `android/app/google-services.json` - Android configuration
+- ✅ `ios/Runner/GoogleService-Info.plist` - iOS configuration
 
-### حالياً:
-- ✅ الكود مُعد بالكامل
-- ✅ معطل تلقائياً في التطوير
-- ⚠️ لن يعمل في الإنتاج بدون ملفات التكوين (لكن التطبيق سيعمل عادي)
+**Package Name**: `com.bagomri.mahrahbloodbank` (تم توحيده في جميع الملفات)
+
+**التحديثات التي تمت:**
+1. ✅ إضافة ملفات Firebase configuration
+2. ✅ تحديث `android/app/build.gradle.kts`:
+   - إضافة plugin: `com.google.gms.google-services`
+   - تحديث `applicationId` و `namespace` إلى `com.bagomri.mahrahbloodbank`
+   - تحديث `versionCode` إلى 2
+   - تحديث `versionName` إلى "2.0.0"
+3. ✅ تحديث `android/settings.gradle.kts`:
+   - إضافة Google Services plugin
+4. ✅ نقل `MainActivity.kt` إلى البنية الجديدة:
+   - من: `com/mahrah/mahrah_blood_bank/`
+   - إلى: `com/bagomri/mahrahbloodbank/`
+5. ✅ تحديث package declaration في `MainActivity.kt`
+6. ✅ بناء APK جديد بنجاح مع Firebase مُفعّل
+
+### الحالة:
+- ✅ Firebase Crashlytics جاهز ومُفعّل 100%
+- ✅ معطل تلقائياً في التطوير (debug mode)
+- ✅ مُفعّل تلقائياً في الإنتاج (release APK)
+- ✅ يلتقط جميع الأخطاء في الإنتاج ويرسلها لـ Firebase Console
 
 ---
 
