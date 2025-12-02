@@ -127,5 +127,77 @@ class ReportModel {
         return status;
     }
   }
+
+  /// الحصول على أولوية البلاغ
+  String get priority {
+    switch (reason) {
+      case 'deceased':
+        return 'critical'; // حرج
+      case 'wrong_number':
+      case 'number_not_working':
+        return 'high'; // عالي
+      case 'moved_away':
+      case 'health_issues':
+        return 'medium'; // متوسط
+      default:
+        return 'low'; // منخفض
+    }
+  }
+
+  /// نص الأولوية بالعربية
+  String get priorityText {
+    switch (priority) {
+      case 'critical':
+        return 'حرج';
+      case 'high':
+        return 'عالي';
+      case 'medium':
+        return 'متوسط';
+      case 'low':
+        return 'منخفض';
+      default:
+        return priority;
+    }
+  }
+
+  /// الإجراء المقترح بناءً على السبب
+  String get suggestedAction {
+    switch (reason) {
+      case 'deceased':
+        return 'delete'; // حذف
+      case 'wrong_number':
+      case 'number_not_working':
+      case 'moved_away':
+      case 'health_issues':
+        return 'edit'; // تعديل
+      default:
+        return 'note'; // ملاحظة فقط
+    }
+  }
+
+  /// نص الإجراء المقترح
+  String get suggestedActionText {
+    switch (suggestedAction) {
+      case 'delete':
+        return 'حذف نهائي';
+      case 'edit':
+        return 'تعديل البيانات';
+      case 'note':
+        return 'إضافة ملاحظة';
+      default:
+        return suggestedAction;
+    }
+  }
+
+  /// استخراج رقم هاتف من الملاحظات (إن وجد)
+  String? extractPhoneFromNotes() {
+    if (notes == null || notes!.isEmpty) return null;
+
+    // البحث عن رقم يمني (9 أرقام تبدأ بـ 7)
+    final RegExp phoneRegex = RegExp(r'7\d{8}');
+    final match = phoneRegex.firstMatch(notes!);
+
+    return match?.group(0);
+  }
 }
 

@@ -6,6 +6,7 @@ import '../../services/report_service.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
 import '../../utils/helpers.dart';
+import 'report_detail_screen.dart';
 
 /// شاشة مراجعة البلاغات (للأدمن)
 class ReviewReportsScreen extends StatefulWidget {
@@ -159,12 +160,27 @@ class _ReviewReportsScreenState extends State<ReviewReportsScreen> {
           final report = _reports[index];
           return _ReportCard(
             report: report,
+            onTap: () => _openReportDetail(report),
             onApprove: () => _approveReport(report),
             onReject: () => _rejectReport(report),
           );
         },
       ),
     );
+  }
+
+  Future<void> _openReportDetail(ReportModel report) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReportDetailScreen(report: report),
+      ),
+    );
+
+    // إذا تم اتخاذ إجراء (قبول/رفض)، أعد تحميل القائمة
+    if (result == true) {
+      _loadReports();
+    }
   }
 
   Future<void> _approveReport(ReportModel report) async {
@@ -267,11 +283,13 @@ class _ReviewReportsScreenState extends State<ReviewReportsScreen> {
 /// بطاقة البلاغ
 class _ReportCard extends StatelessWidget {
   final ReportModel report;
+  final VoidCallback? onTap;
   final VoidCallback? onApprove;
   final VoidCallback? onReject;
 
   const _ReportCard({
     required this.report,
+    this.onTap,
     this.onApprove,
     this.onReject,
   });
@@ -280,22 +298,34 @@ class _ReportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             Row(
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'بلاغ عن: ${report.donorPhoneNumber}',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'بلاغ عن: ${report.donorPhoneNumber}',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
+                          ),
+                          // Badge الأولوية
+                          if (report.priority == 'critical' || report.priority == 'high')
+                            _buildPriorityBadge(),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -381,8 +411,45 @@ class _ReportCard extends StatelessWidget {
                 ],
               ),
             ],
-          ],
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPriorityBadge() {
+    Color color;
+    IconData icon;
+
+    if (report.priority == 'critical') {
+      color = AppColors.error;
+      icon = Icons.warning;
+    } else {
+      color = Colors.orange;
+      icon = Icons.priority_high;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: Colors.white),
+          const SizedBox(width: 4),
+          Text(
+            report.priorityText,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -390,7 +457,7 @@ class _ReportCard extends StatelessWidget {
   Widget _buildStatusBadge() {
     Color color;
     IconData icon;
-    
+
     if (report.isPending) {
       color = AppColors.warning;
       icon = Icons.pending;
