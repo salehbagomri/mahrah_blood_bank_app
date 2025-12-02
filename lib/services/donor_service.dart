@@ -226,6 +226,20 @@ class DonorService {
     }
   }
 
+  /// الحصول على عدد الحسابات المعطلة
+  Future<int> getInactiveDonorsCount() async {
+    try {
+      final response = await _client
+          .from('donors')
+          .select('id')
+          .eq('is_active', false);
+
+      return (response as List).length;
+    } catch (e) {
+      throw Exception('فشل الحصول على عدد الحسابات المعطلة: ${e.toString()}');
+    }
+  }
+
   /// الحصول على جميع المتبرعين (للمستشفى والأدمن)
   Future<List<DonorModel>> getAllDonors({int? limit, int? offset}) async {
     try {

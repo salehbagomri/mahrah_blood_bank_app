@@ -6,6 +6,7 @@ import '../../../constants/app_colors.dart';
 import '../../../models/donor_model.dart';
 import '../../../providers/donor_provider.dart';
 import '../../../utils/helpers.dart';
+import '../edit_donor_screen.dart';
 
 /// بطاقة متبرع محسّنة للأدمن - صلاحيات كاملة
 class AdminDonorCard extends StatefulWidget {
@@ -143,35 +144,47 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
   }
 
   Widget _buildStatusBadge() {
+    // تحديد الحالة بالترتيب: معطل > موقوف > متاح
+    String status;
+    Color statusColor;
+    IconData statusIcon;
+
+    if (!widget.donor.isActive) {
+      status = 'معطل';
+      statusColor = AppColors.error;
+      statusIcon = Icons.block;
+    } else if (widget.donor.isSuspended) {
+      status = 'موقوف';
+      statusColor = AppColors.warning;
+      statusIcon = Icons.pause_circle;
+    } else {
+      status = 'متاح';
+      statusColor = AppColors.success;
+      statusIcon = Icons.check_circle;
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: widget.donor.isSuspended
-            ? AppColors.warning.withOpacity(0.1)
-            : AppColors.success.withOpacity(0.1),
+        color: statusColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: widget.donor.isSuspended
-              ? AppColors.warning.withOpacity(0.5)
-              : AppColors.success.withOpacity(0.5),
+          color: statusColor.withOpacity(0.5),
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            widget.donor.isSuspended ? Icons.pause_circle : Icons.check_circle,
+            statusIcon,
             size: 14,
-            color:
-                widget.donor.isSuspended ? AppColors.warning : AppColors.success,
+            color: statusColor,
           ),
           const SizedBox(width: 4),
           Text(
-            widget.donor.isSuspended ? 'موقوف' : 'متاح',
+            status,
             style: TextStyle(
-              color: widget.donor.isSuspended
-                  ? AppColors.warning
-                  : AppColors.success,
+              color: statusColor,
               fontWeight: FontWeight.bold,
               fontSize: 11,
             ),
@@ -606,13 +619,19 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
   }
 
   /// تعديل بيانات المتبرع
-  void _editDonor(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('قريباً - شاشة تعديل المتبرع'),
-        backgroundColor: AppColors.info,
+  Future<void> _editDonor(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditDonorScreen(donor: widget.donor),
       ),
     );
+
+    // إذا تم الحفظ بنجاح، لا حاجة لإعادة تحميل البيانات
+    // Provider سيحدث تلقائياً
+    if (result == true && context.mounted) {
+      // يمكن إضافة أي إجراء إضافي هنا إذا لزم الأمر
+    }
   }
 
   /// تعطيل/تفعيل الحساب
@@ -742,6 +761,16 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
 
   /// نسخ جميع البيانات
   void _copyAllData(BuildContext context) {
+    // تحديد الحالة
+    String status;
+    if (!widget.donor.isActive) {
+      status = 'معطل';
+    } else if (widget.donor.isSuspended) {
+      status = 'موقوف';
+    } else {
+      status = 'متاح';
+    }
+
     final data = '''
 الاسم: ${widget.donor.name}
 فصيلة الدم: ${widget.donor.bloodType}
@@ -749,7 +778,7 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
 ${widget.donor.phoneNumber2 != null ? 'الهاتف 2: ${widget.donor.phoneNumber2}\n' : ''}${widget.donor.phoneNumber3 != null ? 'الهاتف 3: ${widget.donor.phoneNumber3}\n' : ''}المديرية: ${widget.donor.district}
 الجنس: ${widget.donor.gender == 'male' ? 'ذكر' : 'أنثى'}
 العمر: ${widget.donor.age} سنة
-الحالة: ${widget.donor.isSuspended ? 'موقوف' : 'متاح'}
+الحالة: $status
 ${widget.donor.lastDonationDate != null ? 'آخر تبرع: ${DateFormat('yyyy-MM-dd').format(widget.donor.lastDonationDate!)}\n' : ''}${widget.donor.suspendedUntil != null ? 'موقوف حتى: ${DateFormat('yyyy-MM-dd').format(widget.donor.suspendedUntil!)}\n' : ''}${widget.donor.notes != null && widget.donor.notes!.isNotEmpty ? 'ملاحظات: ${widget.donor.notes}\n' : ''}تاريخ الإضافة: ${Helpers.formatDateTime(widget.donor.createdAt)}
 ''';
 

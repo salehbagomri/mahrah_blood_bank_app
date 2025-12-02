@@ -65,17 +65,26 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
       ),
       body: Column(
         children: [
-          // شريط البحث
+          // شريط البحث (ثابت)
           _buildSearchBar(),
-          
-          // الفلاتر (قابلة للطي)
-          if (_showFilters) _buildFilters(),
-          
-          // الإحصائيات السريعة
-          _buildQuickStats(),
-          
-          // القائمة
-          Expanded(child: _buildDonorsList()),
+
+          // باقي المحتوى (قابل للتمرير)
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // الفلاتر (قابلة للطي)
+                  if (_showFilters) _buildFilters(),
+
+                  // الإحصائيات السريعة
+                  _buildQuickStats(),
+
+                  // القائمة
+                  _buildDonorsList(),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -95,7 +104,7 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
   /// شريط البحث المحسّن
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -341,9 +350,10 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
         if (provider.isLoading) return const SizedBox.shrink();
         
         final filteredDonors = _applyFilters(provider.donors);
-        final availableCount = filteredDonors.where((d) => !d.isSuspended).length;
-        final suspendedCount = filteredDonors.where((d) => d.isSuspended).length;
-        
+        final availableCount = filteredDonors.where((d) => d.isActive && !d.isSuspended).length;
+        final suspendedCount = filteredDonors.where((d) => d.isActive && d.isSuspended).length;
+        final inactiveCount = filteredDonors.where((d) => !d.isActive).length;
+
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
@@ -378,6 +388,13 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
                 label: 'موقوف',
                 value: '$suspendedCount',
                 color: AppColors.warning,
+              ),
+              Container(width: 1, height: 30, color: AppColors.divider),
+              _buildStatItem(
+                icon: Icons.block,
+                label: 'معطل',
+                value: '$inactiveCount',
+                color: AppColors.error,
               ),
             ],
           ),
@@ -447,19 +464,18 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
           );
         }
 
-        return RefreshIndicator(
-          onRefresh: () => provider.loadDonors(),
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: filteredDonors.length,
-            itemBuilder: (context, index) {
-              final donor = filteredDonors[index];
-              return ExpandableDonorCard(
-                donor: donor,
-                showManagementActions: true, // للمستشفيات
-              );
-            },
-          ),
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: filteredDonors.length,
+          itemBuilder: (context, index) {
+            final donor = filteredDonors[index];
+            return ExpandableDonorCard(
+              donor: donor,
+              showManagementActions: true, // للمستشفيات
+            );
+          },
         );
       },
     );

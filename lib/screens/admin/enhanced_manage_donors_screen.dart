@@ -76,17 +76,26 @@ class _EnhancedManageDonorsScreenState
       ),
       body: Column(
         children: [
-          // شريط البحث
+          // شريط البحث (ثابت)
           _buildSearchBar(),
 
-          // الفلاتر (قابلة للطي)
-          if (_showFilters) _buildFilters(),
+          // باقي المحتوى (قابل للتمرير)
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // الفلاتر (قابلة للطي)
+                  if (_showFilters) _buildFilters(),
 
-          // الإحصائيات السريعة
-          _buildQuickStats(),
+                  // الإحصائيات السريعة
+                  _buildQuickStats(),
 
-          // القائمة
-          Expanded(child: _buildDonorsList()),
+                  // القائمة
+                  _buildDonorsList(),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -104,7 +113,7 @@ class _EnhancedManageDonorsScreenState
   /// شريط البحث المحسّن
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -352,10 +361,13 @@ class _EnhancedManageDonorsScreenState
 
         final filteredDonors = _applyFilters(provider.donors);
         final availableCount = filteredDonors
-            .where((d) => !d.isSuspended)
+            .where((d) => d.isActive && !d.isSuspended)
             .length;
         final suspendedCount = filteredDonors
-            .where((d) => d.isSuspended)
+            .where((d) => d.isActive && d.isSuspended)
+            .length;
+        final inactiveCount = filteredDonors
+            .where((d) => !d.isActive)
             .length;
 
         return Container(
@@ -392,6 +404,13 @@ class _EnhancedManageDonorsScreenState
                 label: 'موقوف',
                 value: '$suspendedCount',
                 color: AppColors.warning,
+              ),
+              Container(width: 1, height: 30, color: AppColors.divider),
+              _buildStatItem(
+                icon: Icons.block,
+                label: 'معطل',
+                value: '$inactiveCount',
+                color: AppColors.error,
               ),
             ],
           ),
@@ -458,16 +477,15 @@ class _EnhancedManageDonorsScreenState
           );
         }
 
-        return RefreshIndicator(
-          onRefresh: () => provider.loadDonors(),
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: filteredDonors.length,
-            itemBuilder: (context, index) {
-              final donor = filteredDonors[index];
-              return AdminDonorCard(donor: donor);
-            },
-          ),
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: filteredDonors.length,
+          itemBuilder: (context, index) {
+            final donor = filteredDonors[index];
+            return AdminDonorCard(donor: donor);
+          },
         );
       },
     );

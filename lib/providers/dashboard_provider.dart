@@ -36,6 +36,7 @@ class DashboardProvider with ChangeNotifier {
         _donorService.getCoveredDistrictsCount(),        // 4
         _donorService.getRecentDonors(limit: 5),         // 5
         _donorService.getRecentDonations(limit: 5),      // 6
+        _donorService.getInactiveDonorsCount(),          // 7
       ]);
 
       final stats = results[0] as StatisticsModel;
@@ -46,6 +47,7 @@ class DashboardProvider with ChangeNotifier {
         totalDonors: stats.totalDonors,
         availableDonors: results[1] as int,
         suspendedDonors: (results[2] as List).length,
+        inactiveDonors: results[7] as int,
         newDonorsThisMonth: results[3] as int,
         mostCommonBloodType: stats.mostCommonBloodType,
         mostCommonBloodTypeCount: stats.mostCommonBloodTypeCount,

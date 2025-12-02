@@ -5,6 +5,7 @@ class DashboardStatisticsModel {
   final int totalDonors;
   final int availableDonors;
   final int suspendedDonors;
+  final int inactiveDonors; // الحسابات المعطلة
   final int newDonorsThisMonth;
   final String? mostCommonBloodType;
   final int mostCommonBloodTypeCount;
@@ -19,6 +20,7 @@ class DashboardStatisticsModel {
     required this.totalDonors,
     required this.availableDonors,
     required this.suspendedDonors,
+    this.inactiveDonors = 0, // القيمة الافتراضية 0 للتوافق مع الكود القديم
     required this.newDonorsThisMonth,
     this.mostCommonBloodType,
     required this.mostCommonBloodTypeCount,
@@ -35,6 +37,7 @@ class DashboardStatisticsModel {
     int? totalDonors,
     int? availableDonors,
     int? suspendedDonors,
+    int? inactiveDonors,
     int? newDonorsThisMonth,
     String? mostCommonBloodType,
     int? mostCommonBloodTypeCount,
@@ -49,6 +52,7 @@ class DashboardStatisticsModel {
       totalDonors: totalDonors ?? this.totalDonors,
       availableDonors: availableDonors ?? this.availableDonors,
       suspendedDonors: suspendedDonors ?? this.suspendedDonors,
+      inactiveDonors: inactiveDonors ?? this.inactiveDonors,
       newDonorsThisMonth: newDonorsThisMonth ?? this.newDonorsThisMonth,
       mostCommonBloodType: mostCommonBloodType ?? this.mostCommonBloodType,
       mostCommonBloodTypeCount: mostCommonBloodTypeCount ?? this.mostCommonBloodTypeCount,
