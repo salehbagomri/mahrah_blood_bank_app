@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'config/supabase_config.dart';
 import 'constants/app_theme.dart';
@@ -12,10 +13,21 @@ import 'providers/donor_provider.dart';
 import 'providers/statistics_provider.dart';
 import 'providers/dashboard_provider.dart';
 import 'screens/home/home_screen.dart';
+import 'utils/firebase_error_logger.dart';
 
 void main() async {
   // تأكد من تهيئة Flutter
   WidgetsFlutterBinding.ensureInitialized();
+
+  // تهيئة Firebase (ستحتاج لإضافة google-services.json/GoogleService-Info.plist)
+  try {
+    await Firebase.initializeApp();
+    await FirebaseErrorLogger.initialize();
+    debugPrint('✅ تم تهيئة Firebase Crashlytics بنجاح');
+  } catch (e) {
+    debugPrint('⚠️ تحذير: لم يتم تهيئة Firebase - سيعمل التطبيق بدونه');
+    debugPrint('لتفعيل Crashlytics، أضف google-services.json للـ Android و GoogleService-Info.plist للـ iOS');
+  }
 
   // تثبيت اتجاه الشاشة (عمودي فقط)
   await SystemChrome.setPreferredOrientations([

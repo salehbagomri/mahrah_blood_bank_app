@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/donor_model.dart';
 import '../services/donor_service.dart';
+import '../utils/error_handler.dart';
 
 /// Provider لإدارة حالة المتبرعين
 class DonorProvider with ChangeNotifier {
@@ -34,8 +35,9 @@ class DonorProvider with ChangeNotifier {
         district: district,
         availableOnly: availableOnly,
       );
-    } catch (e) {
-      _errorMessage = e.toString();
+    } catch (e, stackTrace) {
+      _errorMessage = ErrorHandler.getArabicMessage(e);
+      ErrorHandler.logError(e, stackTrace);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -54,8 +56,9 @@ class DonorProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return true;
-    } catch (e) {
-      _errorMessage = e.toString();
+    } catch (e, stackTrace) {
+      _errorMessage = ErrorHandler.getArabicMessage(e);
+      ErrorHandler.logError(e, stackTrace);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -86,8 +89,9 @@ class DonorProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return true;
-    } catch (e) {
-      _errorMessage = e.toString();
+    } catch (e, stackTrace) {
+      _errorMessage = ErrorHandler.getArabicMessage(e);
+      ErrorHandler.logError(e, stackTrace);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -107,8 +111,9 @@ class DonorProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return true;
-    } catch (e) {
-      _errorMessage = e.toString();
+    } catch (e, stackTrace) {
+      _errorMessage = ErrorHandler.getArabicMessage(e);
+      ErrorHandler.logError(e, stackTrace);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -123,17 +128,18 @@ class DonorProvider with ChangeNotifier {
 
     try {
       final updatedDonor = await _donorService.suspendDonorFor6Months(id);
-      
+
       final index = _donors.indexWhere((d) => d.id == updatedDonor.id);
       if (index != -1) {
         _donors[index] = updatedDonor;
       }
-      
+
       _isLoading = false;
       notifyListeners();
       return true;
-    } catch (e) {
-      _errorMessage = e.toString();
+    } catch (e, stackTrace) {
+      _errorMessage = ErrorHandler.getArabicMessage(e);
+      ErrorHandler.logError(e, stackTrace);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -148,8 +154,9 @@ class DonorProvider with ChangeNotifier {
 
     try {
       _donors = await _donorService.getAllDonors();
-    } catch (e) {
-      _errorMessage = e.toString();
+    } catch (e, stackTrace) {
+      _errorMessage = ErrorHandler.getArabicMessage(e);
+      ErrorHandler.logError(e, stackTrace);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -160,8 +167,9 @@ class DonorProvider with ChangeNotifier {
   Future<List<DonorModel>> loadAllDonors() async {
     try {
       return await _donorService.getAllDonors();
-    } catch (e) {
-      throw Exception('فشل تحميل المتبرعين: ${e.toString()}');
+    } catch (e, stackTrace) {
+      ErrorHandler.logError(e, stackTrace);
+      throw Exception(ErrorHandler.getArabicMessage(e));
     }
   }
 
@@ -173,8 +181,9 @@ class DonorProvider with ChangeNotifier {
 
     try {
       _searchResults = await _donorService.searchByNameOrPhone(query);
-    } catch (e) {
-      _errorMessage = e.toString();
+    } catch (e, stackTrace) {
+      _errorMessage = ErrorHandler.getArabicMessage(e);
+      ErrorHandler.logError(e, stackTrace);
     } finally {
       _isLoading = false;
       notifyListeners();

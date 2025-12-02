@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/donor_model.dart';
 import 'supabase_service.dart';
+import '../utils/retry_helper.dart';
 
 /// خدمة إدارة المتبرعين
 class DonorService {
@@ -17,25 +19,31 @@ class DonorService {
     String? district,
     bool availableOnly = true,
   }) async {
-    try {
-      // استخدام الدالة المخصصة search_donors
-      final response = await _client
-          .rpc(
-            'search_donors',
-            params: {
-              'p_blood_type': bloodType,
-              'p_district': district,
-              'p_available_only': availableOnly,
-            },
-          )
-          .select();
+    return RetryHelper.retryWithTimeout(
+      () async {
+        try {
+          // استخدام الدالة المخصصة search_donors
+          final response = await _client
+              .rpc(
+                'search_donors',
+                params: {
+                  'p_blood_type': bloodType,
+                  'p_district': district,
+                  'p_available_only': availableOnly,
+                },
+              )
+              .select();
 
-      return (response as List)
-          .map((json) => DonorModel.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      throw Exception('فشل البحث عن المتبرعين: ${e.toString()}');
-    }
+          return (response as List)
+              .map((json) => DonorModel.fromJson(json as Map<String, dynamic>))
+              .toList();
+        } catch (e) {
+          throw Exception('فشل البحث عن المتبرعين: ${e.toString()}');
+        }
+      },
+      timeout: const Duration(seconds: 30),
+      maxRetries: 2,
+    );
   }
 
   /// الحصول على متبرع واحد حسب المعرف

@@ -4,6 +4,7 @@ import '../models/donor_model.dart';
 import '../models/statistics_model.dart';
 import '../services/donor_service.dart';
 import '../services/statistics_service.dart';
+import '../utils/error_handler.dart';
 
 /// Provider لإدارة حالة لوحة المستشفى
 class DashboardProvider with ChangeNotifier {
@@ -60,9 +61,9 @@ class DashboardProvider with ChangeNotifier {
       );
 
       _errorMessage = null;
-    } catch (e) {
-      _errorMessage = 'فشل تحميل البيانات: ${e.toString()}';
-      debugPrint('Error loading dashboard data: $e');
+    } catch (e, stackTrace) {
+      _errorMessage = ErrorHandler.getArabicMessage(e);
+      ErrorHandler.logError(e, stackTrace);
     } finally {
       _isLoading = false;
       notifyListeners();
