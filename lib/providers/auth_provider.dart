@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_service.dart';
+import '../utils/error_handler.dart';
 
 /// Provider لإدارة حالة المصادقة
 class AuthProvider with ChangeNotifier {
@@ -82,8 +83,9 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
-    } catch (e) {
-      _errorMessage = 'حدث خطأ غير متوقع: ${e.toString()}';
+    } catch (e, stackTrace) {
+      _errorMessage = ErrorHandler.getArabicMessage(e);
+      ErrorHandler.logError(e, stackTrace);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -99,8 +101,9 @@ class AuthProvider with ChangeNotifier {
       await _supabaseService.signOut();
       _currentUser = null;
       _userType = null;
-    } catch (e) {
-      _errorMessage = 'فشل تسجيل الخروج: ${e.toString()}';
+    } catch (e, stackTrace) {
+      _errorMessage = ErrorHandler.getArabicMessage(e);
+      ErrorHandler.logError(e, stackTrace);
     } finally {
       _isLoading = false;
       notifyListeners();
