@@ -329,15 +329,25 @@ class DonorService {
   /// المتاحين = is_active = true AND (suspended_until IS NULL OR suspended_until < NOW())
   Future<int> getAvailableDonorsCount() async {
     try {
-      final now = DateTime.now().toIso8601String();
+      final now = DateTime.now();
 
+      // جلب جميع المتبرعين النشطين
       final response = await _client
           .from('donors')
           .select()
-          .eq('is_active', true)
-          .or('suspended_until.is.null,suspended_until.lt.$now');
+          .eq('is_active', true);
 
-      return (response as List).length;
+      final donors = (response as List)
+          .map((json) => DonorModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+
+      // فلترة المتبرعين غير الموقوفين
+      final availableDonors = donors.where((donor) {
+        // غير موقوف أو انتهى وقت الإيقاف
+        return donor.suspendedUntil == null || donor.suspendedUntil!.isBefore(now);
+      }).toList();
+
+      return availableDonors.length;
     } catch (e) {
       throw Exception('فشل الحصول على عدد المتاحين: ${e.toString()}');
     }

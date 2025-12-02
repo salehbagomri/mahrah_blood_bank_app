@@ -348,11 +348,10 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
     return Consumer<DonorProvider>(
       builder: (context, provider, _) {
         if (provider.isLoading) return const SizedBox.shrink();
-        
+
         final filteredDonors = _applyFilters(provider.donors);
-        final availableCount = filteredDonors.where((d) => d.isActive && !d.isSuspended).length;
-        final suspendedCount = filteredDonors.where((d) => d.isActive && d.isSuspended).length;
-        final inactiveCount = filteredDonors.where((d) => !d.isActive).length;
+        final availableCount = filteredDonors.where((d) => !d.isSuspended).length;
+        final suspendedCount = filteredDonors.where((d) => d.isSuspended).length;
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -388,13 +387,6 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
                 label: 'موقوف',
                 value: '$suspendedCount',
                 color: AppColors.warning,
-              ),
-              Container(width: 1, height: 30, color: AppColors.divider),
-              _buildStatItem(
-                icon: Icons.block,
-                label: 'معطل',
-                value: '$inactiveCount',
-                color: AppColors.error,
               ),
             ],
           ),
@@ -518,7 +510,8 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
 
   /// تطبيق الفلاتر
   List<DonorModel> _applyFilters(List<DonorModel> donors) {
-    var filtered = donors;
+    // أولاً: استبعاد المتبرعين المعطلين (تعطيل الحساب خاص بالأدمن فقط)
+    var filtered = donors.where((d) => d.isActive).toList();
 
     // البحث النصي
     if (_searchController.text.isNotEmpty) {

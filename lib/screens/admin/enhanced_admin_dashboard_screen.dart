@@ -38,6 +38,7 @@ class _EnhancedAdminDashboardScreenState
   int _totalHospitals = 0;
   int _activeHospitals = 0;
   int _suspendedDonors = 0;
+  int _inactiveDonors = 0;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -73,8 +74,10 @@ class _EnhancedAdminDashboardScreenState
           _totalHospitals = hospitals.length;
           _activeHospitals = hospitals.where((h) => h.isActive).length;
           _totalDonors = allDonors.length;
-          _availableDonors = allDonors.where((d) => d.isAvailable).length;
+          // المتاحين = النشطين وغير الموقوفين
+          _availableDonors = allDonors.where((d) => d.isActive && !d.isSuspended).length;
           _suspendedDonors = suspended.length;
+          _inactiveDonors = allDonors.where((d) => !d.isActive).length;
           _isLoading = false;
         });
       }
@@ -205,7 +208,7 @@ class _EnhancedAdminDashboardScreenState
         // إدارة المتبرعين
         AdminActionCard(
           title: 'إدارة المتبرعين',
-          subtitle: '$_availableDonors متاح • $_suspendedDonors موقوف',
+          subtitle: '$_availableDonors متاح • $_suspendedDonors موقوف • $_inactiveDonors معطل',
           icon: Icons.people,
           color: AppColors.primary,
           badgeCount: _suspendedDonors,
