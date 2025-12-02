@@ -161,8 +161,6 @@ class _ReviewReportsScreenState extends State<ReviewReportsScreen> {
           return _ReportCard(
             report: report,
             onTap: () => _openReportDetail(report),
-            onApprove: () => _approveReport(report),
-            onReject: () => _rejectReport(report),
           );
         },
       ),
@@ -182,116 +180,16 @@ class _ReviewReportsScreenState extends State<ReviewReportsScreen> {
       _loadReports();
     }
   }
-
-  Future<void> _approveReport(ReportModel report) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('قبول البلاغ'),
-        content: Text(
-          'هل تريد قبول هذا البلاغ؟\n\n'
-          'رقم الهاتف: ${report.donorPhoneNumber}\n'
-          'السبب: ${report.reasonText}',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(AppStrings.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-            child: const Text(AppStrings.approveReport),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      try {
-        await _reportService.approveReport(report.id);
-        
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تم قبول البلاغ'),
-              backgroundColor: AppColors.success,
-            ),
-          );
-          _loadReports();
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('فشل قبول البلاغ: ${e.toString()}'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  Future<void> _rejectReport(ReportModel report) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('رفض البلاغ'),
-        content: const Text('هل تريد رفض هذا البلاغ؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(AppStrings.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text(AppStrings.rejectReport),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      try {
-        await _reportService.rejectReport(report.id);
-        
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تم رفض البلاغ'),
-              backgroundColor: AppColors.warning,
-            ),
-          );
-          _loadReports();
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('فشل رفض البلاغ: ${e.toString()}'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-        }
-      }
-    }
-  }
 }
 
 /// بطاقة البلاغ
 class _ReportCard extends StatelessWidget {
   final ReportModel report;
   final VoidCallback? onTap;
-  final VoidCallback? onApprove;
-  final VoidCallback? onReject;
 
   const _ReportCard({
     required this.report,
     this.onTap,
-    this.onApprove,
-    this.onReject,
   });
 
   @override
@@ -386,26 +284,26 @@ class _ReportCard extends StatelessWidget {
                 ),
               ),
             ],
+            // تمت إزالة الأزرار - الآن يفتح شاشة التفاصيل عند الضغط على البطاقة
             if (report.isPending) ...[
               const SizedBox(height: 12),
               const Divider(height: 1),
               const SizedBox(height: 8),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TextButton.icon(
-                    onPressed: onReject,
-                    icon: const Icon(Icons.close, size: 18),
-                    label: const Text(AppStrings.rejectReport),
-                    style: TextButton.styleFrom(foregroundColor: AppColors.error),
+                  Icon(
+                    Icons.touch_app,
+                    size: 16,
+                    color: AppColors.primary,
                   ),
                   const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: onApprove,
-                    icon: const Icon(Icons.check, size: 18),
-                    label: const Text(AppStrings.approveReport),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.success,
+                  Text(
+                    'اضغط لعرض التفاصيل واتخاذ الإجراء',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
