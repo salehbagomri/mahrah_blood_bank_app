@@ -24,7 +24,7 @@ class ErrorHandler {
   static String getArabicMessage(dynamic error) {
     if (error == null) return 'حدث خطأ غير متوقع';
 
-    // معالجة أخطاء الشبكة
+    // معالجة أخطاء الشبكة المباشرة
     if (error is SocketException) {
       return 'لا يوجد اتصال بالإنترنت. يرجى التحقق من الاتصال والمحاولة مرة أخرى';
     }
@@ -56,15 +56,32 @@ class ErrorHandler {
 
     // معالجة Exception العامة
     if (error is Exception) {
-      final message = error.toString().replaceFirst('Exception: ', '');
+      final message = error.toString().toLowerCase();
+
+      // معالجة ClientException مع SocketException (أخطاء الشبكة من http client)
+      if (message.contains('clientexception') && message.contains('socketexception')) {
+        return 'لا يوجد اتصال بالإنترنت. يرجى التحقق من الاتصال والمحاولة مرة أخرى';
+      }
+
+      // معالجة SocketException داخل أي exception
+      if (message.contains('socketexception') || message.contains('failed host lookup')) {
+        return 'لا يوجد اتصال بالإنترنت. يرجى التحقق من الاتصال والمحاولة مرة أخرى';
+      }
+
+      // معالجة أخطاء الاتصال
+      if (message.contains('connection') && (message.contains('refused') || message.contains('failed') || message.contains('timeout'))) {
+        return 'فشل الاتصال بالخادم. يرجى التحقق من الإنترنت والمحاولة مرة أخرى';
+      }
+
+      final originalMessage = error.toString().replaceFirst('Exception: ', '');
 
       // تحقق إذا كانت الرسالة بالعربية بالفعل
-      if (_isArabic(message)) {
-        return message;
+      if (_isArabic(originalMessage)) {
+        return originalMessage;
       }
 
       // حاول استخراج معلومات مفيدة
-      if (message.contains('JWT')) {
+      if (message.contains('jwt')) {
         return 'انتهت جلسة العمل. يرجى تسجيل الدخول مرة أخرى';
       }
 
@@ -80,7 +97,12 @@ class ErrorHandler {
         return 'ليس لديك صلاحية لتنفيذ هذا الإجراء';
       }
 
-      return message;
+      // إذا كانت رسالة طويلة جداً، اختصرها
+      if (originalMessage.length > 100) {
+        return 'حدث خطأ في الاتصال. يرجى التحقق من الإنترنت والمحاولة مرة أخرى';
+      }
+
+      return originalMessage;
     }
 
     // الحالة الافتراضية
