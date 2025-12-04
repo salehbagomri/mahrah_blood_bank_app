@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,6 +8,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
     // Google Services plugin for Firebase
     id("com.google.gms.google-services")
+}
+
+// Load keystore properties
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -24,20 +34,62 @@ android {
     defaultConfig {
         applicationId = "com.bagomri.mahrahbloodbank"
         minSdk = flutter.minSdkVersion  // Android 5.0+ support
-        targetSdk = 34  // Latest Android API
+        targetSdk = 35  // Latest Android API (Android 15)
         versionCode = 2
         versionName = "2.0.0"
+        // multiDex enabled by default for minSdk >= 21
+    }
+
+    // Signing configurations
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
+        }
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Sign with release keystore
+            signingConfig = signingConfigs.getByName("release")
+
+            // Enable R8 minification to fix DEX issue
+            isMinifyEnabled = true
+            isShrinkResources = true
+
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+
+        debug {
             signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
+    // Bundle options for DEX fix
+    bundle {
+        language {
+            enableSplit = true
+        }
+        density {
+            enableSplit = true
+        }
+        abi {
+            enableSplit = true
         }
     }
 }
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Core dependencies managed by Flutter
 }

@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/hospital_model.dart';
 import 'supabase_service.dart';
+import '../utils/error_handler.dart';
 
 /// خدمة إدارة المستشفيات (للأدمن فقط)
 class HospitalService {
@@ -19,7 +20,7 @@ class HospitalService {
           .map((json) => HospitalModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw Exception('فشل الحصول على المستشفيات: ${e.toString()}');
+      throw Exception('فشل الحصول على المستشفيات: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -35,7 +36,7 @@ class HospitalService {
       if (response == null) return null;
       return HospitalModel.fromJson(response);
     } catch (e) {
-      throw Exception('فشل الحصول على بيانات المستشفى: ${e.toString()}');
+      throw Exception('فشل الحصول على بيانات المستشفى: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -58,7 +59,7 @@ class HospitalService {
 
       return HospitalModel.fromJson(response);
     } catch (e) {
-      throw Exception('فشل تحديث بيانات المستشفى: ${e.toString()}');
+      throw Exception('فشل تحديث بيانات المستشفى: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -74,7 +75,7 @@ class HospitalService {
 
       return HospitalModel.fromJson(response);
     } catch (e) {
-      throw Exception('فشل تحديث حالة المستشفى: ${e.toString()}');
+      throw Exception('فشل تحديث حالة المستشفى: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -90,7 +91,7 @@ class HospitalService {
       // ملاحظة: حذف المستخدم من Auth يجب أن يتم من Dashboard
       // أو باستخدام Service Role Key (غير آمن في التطبيق)
     } catch (e) {
-      throw Exception('فشل حذف المستشفى: ${e.toString()}');
+      throw Exception('فشل حذف المستشفى: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -107,7 +108,7 @@ class HospitalService {
           .map((json) => HospitalModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw Exception('فشل البحث عن المستشفيات: ${e.toString()}');
+      throw Exception('فشل البحث عن المستشفيات: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -121,7 +122,7 @@ class HospitalService {
 
       return response.count;
     } catch (e) {
-      throw Exception('فشل الحصول على عدد المستشفيات: ${e.toString()}');
+      throw Exception('فشل الحصول على عدد المستشفيات: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -138,7 +139,7 @@ class HospitalService {
           .map((json) => HospitalModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw Exception('فشل الحصول على المستشفيات النشطة: ${e.toString()}');
+      throw Exception('فشل الحصول على المستشفيات النشطة: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 }

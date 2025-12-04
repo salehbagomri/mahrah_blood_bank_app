@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/statistics_model.dart';
 import 'supabase_service.dart';
+import '../utils/error_handler.dart';
 
 /// خدمة الإحصائيات
 class StatisticsService {
@@ -15,7 +16,7 @@ class StatisticsService {
 
       return StatisticsModel.fromJson(response);
     } catch (e) {
-      throw Exception('فشل الحصول على الإحصائيات: ${e.toString()}');
+      throw Exception('فشل الحصول على الإحصائيات: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -102,7 +103,7 @@ class StatisticsService {
         lastUpdated: DateTime.now(),
       );
     } catch (e) {
-      throw Exception('فشل الحصول على الإحصائيات: ${e.toString()}');
+      throw Exception('فشل الحصول على الإحصائيات: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 }

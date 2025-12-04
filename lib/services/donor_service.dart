@@ -178,7 +178,7 @@ class DonorService {
         return null;
       }
 
-      return DonorModel.fromJson(response.first as Map<String, dynamic>);
+      return DonorModel.fromJson(response.first);
     } catch (e) {
       return null;
     }

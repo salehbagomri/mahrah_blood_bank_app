@@ -3,6 +3,7 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../models/hospital_model.dart';
 import '../../services/hospital_service.dart';
+import '../../utils/error_handler.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
 import 'add_hospital_screen.dart';
@@ -41,7 +42,7 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = ErrorHandler.getArabicMessage(e);
         _isLoading = false;
       });
     }
@@ -153,7 +154,7 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل تحديث حالة المستشفى: ${e.toString()}'),
+            content: Text('فشل تحديث حالة المستشفى: ${ErrorHandler.getArabicMessage(e)}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -198,7 +199,7 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('فشل حذف المستشفى: ${e.toString()}'),
+              content: Text('فشل حذف المستشفى: ${ErrorHandler.getArabicMessage(e)}'),
               backgroundColor: AppColors.error,
             ),
           );

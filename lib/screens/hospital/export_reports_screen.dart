@@ -6,6 +6,7 @@ import '../../providers/dashboard_provider.dart';
 import '../../providers/donor_provider.dart';
 import '../../services/export_service.dart';
 import '../../widgets/loading_widget.dart';
+import '../../utils/error_handler.dart';
 
 /// شاشة تصدير التقارير
 class ExportReportsScreen extends StatefulWidget {
@@ -59,7 +60,7 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل التصدير: ${e.toString()}'),
+            content: Text('فشل التصدير: ${ErrorHandler.getArabicMessage(e)}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -112,7 +113,7 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل التصدير: ${e.toString()}'),
+            content: Text('فشل التصدير: ${ErrorHandler.getArabicMessage(e)}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -165,7 +166,7 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل التصدير: ${e.toString()}'),
+            content: Text('فشل التصدير: ${ErrorHandler.getArabicMessage(e)}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -218,7 +219,7 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل التصدير: ${e.toString()}'),
+            content: Text('فشل التصدير: ${ErrorHandler.getArabicMessage(e)}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -241,7 +242,7 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل فتح الملف: ${e.toString()}'),
+            content: Text('فشل فتح الملف: ${ErrorHandler.getArabicMessage(e)}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -253,12 +254,12 @@ class _ExportReportsScreenState extends State<ExportReportsScreen> {
     if (_exportedFilePath == null) return;
 
     try {
-      await _exportService.shareFile(_exportedFilePath!, 'تقرير بنك دم محافظة المهرة');
+      await _exportService.shareFile(_exportedFilePath!, 'تقرير بنك دم المهرة');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل المشاركة: ${e.toString()}'),
+            content: Text('فشل المشاركة: ${ErrorHandler.getArabicMessage(e)}'),
             backgroundColor: Colors.red,
           ),
         );

@@ -5,6 +5,7 @@ import '../../models/hospital_model.dart';
 import '../../services/hospital_service.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
+import '../../utils/error_handler.dart';
 import 'add_hospital_screen.dart';
 import 'widgets/enhanced_hospital_card.dart';
 import 'edit_hospital_screen.dart';
@@ -58,7 +59,7 @@ class _EnhancedManageHospitalsScreenState
       });
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = ErrorHandler.getArabicMessage(e);
         _isLoading = false;
       });
     }
@@ -361,7 +362,7 @@ class _EnhancedManageHospitalsScreenState
     Function(String) onChanged,
   ) {
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -521,7 +522,7 @@ class _EnhancedManageHospitalsScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل تحديث حالة المستشفى: ${e.toString()}'),
+            content: Text('فشل تحديث حالة المستشفى: ${ErrorHandler.getArabicMessage(e)}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -582,7 +583,7 @@ class _EnhancedManageHospitalsScreenState
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('فشل حذف المستشفى: ${e.toString()}'),
+              content: Text('فشل حذف المستشفى: ${ErrorHandler.getArabicMessage(e)}'),
               backgroundColor: AppColors.error,
             ),
           );

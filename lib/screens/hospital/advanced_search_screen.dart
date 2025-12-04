@@ -7,6 +7,7 @@ import '../../providers/donor_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/donor_card.dart';
+import '../../utils/error_handler.dart';
 
 /// شاشة البحث المتقدم للمستشفى
 class AdvancedSearchScreen extends StatefulWidget {
@@ -82,7 +83,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
           
           // فصيلة الدم
           DropdownButtonFormField<String>(
-            value: _selectedBloodType,
+            initialValue: _selectedBloodType,
             decoration: const InputDecoration(
               labelText: 'فصيلة الدم',
               prefixIcon: Icon(Icons.bloodtype),
@@ -100,7 +101,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
           
           // المديرية
           DropdownButtonFormField<String>(
-            value: _selectedDistrict,
+            initialValue: _selectedDistrict,
             decoration: const InputDecoration(
               labelText: 'المديرية',
               prefixIcon: Icon(Icons.location_city),
@@ -118,7 +119,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
           
           // الجنس
           DropdownButtonFormField<String>(
-            value: _selectedGender,
+            initialValue: _selectedGender,
             decoration: const InputDecoration(
               labelText: 'الجنس',
               prefixIcon: Icon(Icons.person),
@@ -252,7 +253,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل البحث: ${e.toString()}'),
+            content: Text('فشل البحث: ${ErrorHandler.getArabicMessage(e)}'),
             backgroundColor: AppColors.error,
           ),
         );

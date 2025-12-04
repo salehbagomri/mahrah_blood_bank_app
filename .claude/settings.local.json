@@ -11,7 +11,21 @@
       "Bash(flutter analyze:*)",
       "Bash(flutter doctor:*)",
       "Bash(flutter build:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(dart run:*)",
+      "Bash(dir:*)",
+      "Bash(\"C:\\Program Files\\Java\\jdk-17\\bin\\keytool.exe\" -genkey -v -keystore \"android/keystore/mahrah-release-key.jks\" -keyalg RSA -keysize 2048 -validity 10000 -alias upload -storepass \"Saleh@770727055\" -keypass \"Saleh@770727055\" -dname \"CN=Saleh Bagomri, OU=Mahrah Blood Bank, O=Mahrah Blood Bank App, L=Aden, ST=Aden, C=YE\")",
+      "Bash(\"C:\\Program Files\\Java\\jdk-17\\bin\\keytool.exe\" -list -v -keystore \"android/keystore/mahrah-release-key.jks\" -alias upload -storepass \"Saleh@770727055\")",
+      "Bash(flutter --version:*)",
+      "Bash(./gradlew:*)",
+      "Bash(timeout 30 bash:*)",
+      "Bash(timeout 60 bash:*)",
+      "Bash(timeout 120 bash:*)",
+      "Bash(timeout 180 bash -c 'while true; do sleep 20; done')",
+      "Bash(timeout 180 bash -c 'while true; do sleep 30; done')",
+      "Bash(timeout 300 bash:*)",
+      "Bash(timeout 90 bash:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

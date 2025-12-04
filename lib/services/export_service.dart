@@ -9,6 +9,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:intl/intl.dart';
 import '../models/donor_model.dart';
 import '../models/dashboard_statistics_model.dart';
+import '../utils/error_handler.dart';
 
 /// خدمة تصدير التقارير إلى Excel و PDF
 class ExportService {
@@ -26,7 +27,7 @@ class ExportService {
       _arabicFont = pw.Font.ttf(fontData);
       return _arabicFont!;
     } catch (e) {
-      throw Exception('فشل تحميل الخط العربي: ${e.toString()}');
+      throw Exception('فشل تحميل الخط العربي: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -89,7 +90,7 @@ class ExportService {
 
       return filePath;
     } catch (e) {
-      throw Exception('فشل تصدير Excel: ${e.toString()}');
+      throw Exception('فشل تصدير Excel: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -199,7 +200,7 @@ class ExportService {
 
       return filePath;
     } catch (e) {
-      throw Exception('فشل تصدير الإحصائيات: ${e.toString()}');
+      throw Exception('فشل تصدير الإحصائيات: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -236,7 +237,7 @@ class ExportService {
                     padding: const pw.EdgeInsets.all(10),
                     color: PdfColors.green,
                     child: pw.Text(
-                      'تقرير المتبرعين - بنك دم محافظة المهرة',
+                      'تقرير المتبرعين - بنك دم المهرة',
                       style: pw.TextStyle(
                         fontSize: 18,
                         fontWeight: pw.FontWeight.bold,
@@ -346,7 +347,7 @@ class ExportService {
 
       return filePath;
     } catch (e) {
-      throw Exception('فشل تصدير PDF: ${e.toString()}');
+      throw Exception('فشل تصدير PDF: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -373,7 +374,7 @@ class ExportService {
                   padding: const pw.EdgeInsets.all(15),
                   color: PdfColors.blue,
                   child: pw.Text(
-                    'تقرير الإحصائيات - بنك دم محافظة المهرة',
+                    'تقرير الإحصائيات - بنك دم المهرة',
                     style: pw.TextStyle(
                       fontSize: 20,
                       fontWeight: pw.FontWeight.bold,
@@ -555,7 +556,7 @@ class ExportService {
 
       return filePath;
     } catch (e) {
-      throw Exception('فشل تصدير الإحصائيات PDF: ${e.toString()}');
+      throw Exception('فشل تصدير الإحصائيات PDF: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -567,7 +568,7 @@ class ExportService {
         throw Exception('فشل فتح الملف: ${result.message}');
       }
     } catch (e) {
-      throw Exception('فشل فتح الملف: ${e.toString()}');
+      throw Exception('فشل فتح الملف: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -576,7 +577,7 @@ class ExportService {
     try {
       await Share.shareXFiles([XFile(filePath)], subject: subject);
     } catch (e) {
-      throw Exception('فشل مشاركة الملف: ${e.toString()}');
+      throw Exception('فشل مشاركة الملف: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 

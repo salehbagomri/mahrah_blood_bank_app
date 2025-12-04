@@ -95,5 +95,14 @@ coverage/
 **/google-services.json
 **/GoogleService-Info.plist
 
+# Keystore files - CRITICAL: Never commit these!
+**/key.properties
+**/*.jks
+**/*.keystore
+**/android/keystore/
+
 # macOS
 .DS_Store
+
+# Claude Code settings
+.claude/

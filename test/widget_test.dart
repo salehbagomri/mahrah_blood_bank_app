@@ -1,4 +1,4 @@
-// اختبارات تطبيق بنك دم محافظة المهرة
+// اختبارات تطبيق بنك دم المهرة
 //
 // ملاحظة: هذه اختبارات أساسية فقط
 // للاختبارات الكاملة، يجب استخدام integration_test
@@ -13,7 +13,7 @@ import 'package:mahrah_blood_bank/utils/helpers.dart';
 void main() {
   group('App Strings Tests', () {
     test('App name is correct', () {
-      expect(AppStrings.appName, equals('بنك دم محافظة المهرة'));
+      expect(AppStrings.appName, equals('بنك دم المهرة'));
     });
 
     test('Districts list contains all 9 districts', () {

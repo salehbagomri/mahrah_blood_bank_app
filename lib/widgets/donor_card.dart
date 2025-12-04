@@ -201,7 +201,7 @@ class _DonorCardElement extends ComponentElement {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ],
           ),

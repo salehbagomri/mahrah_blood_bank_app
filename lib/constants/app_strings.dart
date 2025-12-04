@@ -1,7 +1,7 @@
 /// جميع النصوص الثابتة في التطبيق
 class AppStrings {
   // اسم التطبيق
-  static const String appName = 'بنك دم محافظة المهرة';
+  static const String appName = 'بنك دم المهرة';
   static const String appNameEnglish = 'Mahrah Blood Bank';
   
   // الصفحة الرئيسية

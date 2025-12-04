@@ -11,6 +11,9 @@ import '../donor/add_donor_screen.dart';
 import '../awareness/awareness_screen.dart';
 import '../reports/report_donor_screen.dart';
 import '../auth/login_screen.dart';
+import '../info/about_screen.dart';
+import '../info/contact_screen.dart';
+import 'package:share_plus/share_plus.dart';
 
 /// الصفحة الرئيسية للتطبيق
 class HomeScreen extends StatefulWidget {
@@ -61,11 +64,72 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        // زر دخول الإدارة في AppBar
+        // أزرار في AppBar
         actions: [
+          // زر دخول الإدارة
           Padding(
-            padding: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
+            padding: const EdgeInsets.only(right: 12, left: 8),
             child: _buildAdminButton(context),
+          ),
+          // قائمة المزيد
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: PopupMenuButton<String>(
+              icon: const Icon(Icons.settings, color: Colors.white),
+              onSelected: (value) => _handleMenuSelection(context, value),
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'about',
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: AppColors.primary),
+                      SizedBox(width: 12),
+                      Text('حول التطبيق'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'contact',
+                  child: Row(
+                    children: [
+                      Icon(Icons.email_outlined, color: AppColors.primary),
+                      SizedBox(width: 12),
+                      Text('تواصل معنا'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'rate',
+                  child: Row(
+                    children: [
+                      Icon(Icons.star_outline, color: Colors.amber),
+                      SizedBox(width: 12),
+                      Text('قيّم التطبيق'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'share',
+                  child: Row(
+                    children: [
+                      Icon(Icons.share_outlined, color: AppColors.success),
+                      SizedBox(width: 12),
+                      Text('شارك التطبيق'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'privacy',
+                  child: Row(
+                    children: [
+                      Icon(Icons.privacy_tip_outlined, color: AppColors.info),
+                      SizedBox(width: 12),
+                      Text('سياسة الخصوصية'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -185,6 +249,86 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  /// معالجة اختيار عنصر من قائمة المزيد
+  void _handleMenuSelection(BuildContext context, String value) {
+    switch (value) {
+      case 'about':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const AboutScreen()),
+        );
+        break;
+      case 'contact':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const ContactScreen()),
+        );
+        break;
+      case 'rate':
+        _rateApp();
+        break;
+      case 'share':
+        _shareApp();
+        break;
+      case 'privacy':
+        _openPrivacyPolicy();
+        break;
+    }
+  }
+
+  /// فتح صفحة تقييم التطبيق على Play Store
+  Future<void> _rateApp() async {
+    final packageName = 'com.bagomri.mahrahbloodbank';
+    final Uri playStoreUri = Uri.parse(
+      'https://play.google.com/store/apps/details?id=$packageName',
+    );
+
+    if (await canLaunchUrl(playStoreUri)) {
+      await launchUrl(playStoreUri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('سيتم إضافة التطبيق على Play Store قريباً'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  /// مشاركة التطبيق
+  Future<void> _shareApp() async {
+    const String appName = 'بنك دم المهرة';
+    const String packageName = 'com.bagomri.mahrahbloodbank';
+    const String playStoreUrl =
+        'https://play.google.com/store/apps/details?id=$packageName';
+
+    const String shareText = '''
+🩸 $appName - تطبيق ينقذ الأرواح!
+
+التطبيق يساعد على:
+• البحث السريع عن متبرعين بالدم
+• ربط المتبرعين مع المحتاجين
+• نشر الوعي حول أهمية التبرع
+
+📥 حمّل التطبيق الآن:
+$playStoreUrl
+
+💙 معاً ننقذ الأرواح في المهرة''';
+
+    await Share.share(shareText);
+  }
+
+  /// فتح سياسة الخصوصية
+  Future<void> _openPrivacyPolicy() async {
+    final Uri privacyUrl = Uri.parse(
+      'https://salehbagomri.github.io/mahrah-blood-bank-privacy/',
+    );
+
+    if (await canLaunchUrl(privacyUrl)) {
+      await launchUrl(privacyUrl, mode: LaunchMode.externalApplication);
+    }
   }
 
   /// زر دخول الإدارة الصغير في AppBar (أيقونة فقط)

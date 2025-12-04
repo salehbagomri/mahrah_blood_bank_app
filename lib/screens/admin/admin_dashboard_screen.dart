@@ -8,6 +8,7 @@ import '../../providers/statistics_provider.dart';
 import '../../services/report_service.dart';
 import '../../services/hospital_service.dart';
 import '../../services/donor_service.dart';
+import '../../utils/error_handler.dart';
 import 'manage_hospitals_screen.dart';
 import 'review_reports_screen.dart';
 import 'manage_donors_screen.dart';
@@ -68,7 +69,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'فشل تحميل البيانات: ${e.toString()}';
+          _errorMessage = 'فشل تحميل البيانات: ${ErrorHandler.getArabicMessage(e)}';
           _isLoading = false;
         });
       }

@@ -7,6 +7,7 @@ import '../../constants/app_strings.dart';
 import '../../models/donor_model.dart';
 import '../../providers/donor_provider.dart';
 import '../../utils/validators.dart';
+import '../../utils/error_handler.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_dropdown.dart';
 import '../../widgets/loading_widget.dart';
@@ -192,7 +193,7 @@ class _EditDonorScreenState extends State<EditDonorScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ خطأ: ${e.toString()}'),
+            content: Text('❌ خطأ: ${ErrorHandler.getArabicMessage(e)}'),
             backgroundColor: AppColors.error,
           ),
         );

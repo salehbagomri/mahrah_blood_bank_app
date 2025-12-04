@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/report_model.dart';
 import 'supabase_service.dart';
+import '../utils/error_handler.dart';
 
 /// خدمة البلاغات
 class ReportService {
@@ -28,7 +29,7 @@ class ReportService {
 
       return ReportModel.fromJson(response);
     } catch (e) {
-      throw Exception('فشل إرسال البلاغ: ${e.toString()}');
+      throw Exception('فشل إرسال البلاغ: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -56,7 +57,7 @@ class ReportService {
           .map((json) => ReportModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw Exception('فشل الحصول على البلاغات: ${e.toString()}');
+      throw Exception('فشل الحصول على البلاغات: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -81,7 +82,7 @@ class ReportService {
 
       return ReportModel.fromJson(response);
     } catch (e) {
-      throw Exception('فشل قبول البلاغ: ${e.toString()}');
+      throw Exception('فشل قبول البلاغ: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -101,7 +102,7 @@ class ReportService {
 
       return ReportModel.fromJson(response);
     } catch (e) {
-      throw Exception('فشل رفض البلاغ: ${e.toString()}');
+      throw Exception('فشل رفض البلاغ: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -118,7 +119,7 @@ class ReportService {
           .map((json) => ReportModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw Exception('فشل الحصول على البلاغات: ${e.toString()}');
+      throw Exception('فشل الحصول على البلاغات: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -130,7 +131,7 @@ class ReportService {
           .delete()
           .eq('id', reportId);
     } catch (e) {
-      throw Exception('فشل حذف البلاغ: ${e.toString()}');
+      throw Exception('فشل حذف البلاغ: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 
@@ -145,7 +146,7 @@ class ReportService {
 
       return response.count;
     } catch (e) {
-      throw Exception('فشل الحصول على عدد البلاغات: ${e.toString()}');
+      throw Exception('فشل الحصول على عدد البلاغات: ${ErrorHandler.getArabicMessage(e)}');
     }
   }
 }

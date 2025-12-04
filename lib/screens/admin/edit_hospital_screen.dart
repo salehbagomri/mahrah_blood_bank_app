@@ -5,6 +5,7 @@ import '../../constants/app_strings.dart';
 import '../../models/hospital_model.dart';
 import '../../services/hospital_service.dart';
 import '../../utils/validators.dart';
+import '../../utils/error_handler.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_dropdown.dart';
 import '../../widgets/loading_widget.dart';
@@ -115,7 +116,7 @@ class _EditHospitalScreenState extends State<EditHospitalScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل تحديث البيانات: ${e.toString()}'),
+            content: Text('فشل تحديث البيانات: ${ErrorHandler.getArabicMessage(e)}'),
             backgroundColor: AppColors.error,
           ),
         );

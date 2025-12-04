@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../utils/validators.dart';
+import '../../utils/error_handler.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_dropdown.dart';
 import '../../widgets/loading_widget.dart';
@@ -311,7 +312,7 @@ class _AddHospitalScreenState extends State<AddHospitalScreen> {
           } else if (errorString.contains('invalid')) {
             errorMessage = 'بيانات غير صحيحة. تحقق من البريد وكلمة المرور.';
           } else {
-            errorMessage = 'فشل إضافة المستشفى:\n${e.toString()}';
+            errorMessage = 'فشل إضافة المستشفى:\n${ErrorHandler.getArabicMessage(e)}';
           }
         }
 

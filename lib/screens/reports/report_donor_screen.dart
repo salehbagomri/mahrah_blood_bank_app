@@ -6,6 +6,7 @@ import '../../services/donor_service.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_dropdown.dart';
 import '../../widgets/loading_widget.dart';
+import '../../utils/error_handler.dart';
 
 /// صفحة الإبلاغ عن رقم متبرع غير صالح
 class ReportDonorScreen extends StatefulWidget {
@@ -290,7 +291,7 @@ class _ReportDonorScreenState extends State<ReportDonorScreen> {
       // عرض رسالة خطأ
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('فشل إرسال البلاغ: ${e.toString()}'),
+          content: Text('فشل إرسال البلاغ: ${ErrorHandler.getArabicMessage(e)}'),
           backgroundColor: AppColors.error,
         ),
       );

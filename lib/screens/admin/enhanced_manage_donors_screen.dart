@@ -223,7 +223,7 @@ class _EnhancedManageDonorsScreenState
               // المديرية
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedDistrict,
+                  initialValue: _selectedDistrict,
                   decoration: InputDecoration(
                     labelText: 'المديرية',
                     prefixIcon: const Icon(Icons.location_city, size: 18),
@@ -254,7 +254,7 @@ class _EnhancedManageDonorsScreenState
               // الجنس
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedGender,
+                  initialValue: _selectedGender,
                   decoration: InputDecoration(
                     labelText: 'الجنس',
                     prefixIcon: const Icon(Icons.person, size: 18),
@@ -289,7 +289,7 @@ class _EnhancedManageDonorsScreenState
               // الحالة
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _selectedStatus ?? 'all',
+                  initialValue: _selectedStatus ?? 'all',
                   decoration: InputDecoration(
                     labelText: 'الحالة',
                     prefixIcon: const Icon(Icons.check_circle, size: 18),
@@ -318,7 +318,7 @@ class _EnhancedManageDonorsScreenState
               // الترتيب
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: _sortBy,
+                  initialValue: _sortBy,
                   decoration: InputDecoration(
                     labelText: 'ترتيب حسب',
                     prefixIcon: const Icon(Icons.sort, size: 18),

@@ -65,6 +65,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      debugPrint('🔵 محاولة تسجيل الدخول...');
       final response = await _supabaseService.signIn(
         email: email,
         password: password,
@@ -79,12 +80,17 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } on AuthException catch (e) {
+      debugPrint('🟡 AuthException: ${e.message}');
       _errorMessage = _getArabicErrorMessage(e.message);
       _isLoading = false;
       notifyListeners();
       return false;
     } catch (e, stackTrace) {
-      _errorMessage = ErrorHandler.getArabicMessage(e);
+      debugPrint('🔴 Exception type: ${e.runtimeType}');
+      debugPrint('🔴 Exception: $e');
+      final arabicMessage = ErrorHandler.getArabicMessage(e);
+      debugPrint('🟢 Arabic message: $arabicMessage');
+      _errorMessage = arabicMessage;
       ErrorHandler.logError(e, stackTrace);
       _isLoading = false;
       notifyListeners();
@@ -112,15 +118,26 @@ class AuthProvider with ChangeNotifier {
 
   /// ترجمة رسائل الخطأ إلى العربية
   String _getArabicErrorMessage(String message) {
-    if (message.contains('Invalid login credentials')) {
+    final lowerMessage = message.toLowerCase();
+
+    // معالجة أخطاء الشبكة
+    if (lowerMessage.contains('clientexception') ||
+        lowerMessage.contains('socketexception') ||
+        lowerMessage.contains('failed host lookup')) {
+      return 'لا يوجد اتصال بالإنترنت. يرجى التحقق من الاتصال والمحاولة مرة أخرى';
+    }
+
+    // معالجة أخطاء المصادقة
+    if (lowerMessage.contains('invalid login credentials')) {
       return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-    } else if (message.contains('Email not confirmed')) {
+    } else if (lowerMessage.contains('email not confirmed')) {
       return 'يرجى تأكيد البريد الإلكتروني أولاً';
-    } else if (message.contains('User not found')) {
+    } else if (lowerMessage.contains('user not found')) {
       return 'المستخدم غير موجود';
-    } else if (message.contains('Network')) {
+    } else if (lowerMessage.contains('network')) {
       return 'يرجى التحقق من الاتصال بالإنترنت';
     }
+
     return message;
   }
 

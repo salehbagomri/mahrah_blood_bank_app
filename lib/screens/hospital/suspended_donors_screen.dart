@@ -6,6 +6,7 @@ import '../../services/donor_service.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
 import '../../utils/helpers.dart';
+import '../../utils/error_handler.dart';
 
 /// شاشة المتبرعين الموقوفين (للمستشفى)
 class SuspendedDonorsScreen extends StatefulWidget {
@@ -41,7 +42,7 @@ class _SuspendedDonorsScreenState extends State<SuspendedDonorsScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = ErrorHandler.getArabicMessage(e);
         _isLoading = false;
       });
     }

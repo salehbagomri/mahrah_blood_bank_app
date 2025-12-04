@@ -25,7 +25,7 @@ class StatisticsProvider with ChangeNotifier {
 
     try {
       _statistics = await _statisticsService.getStatistics();
-    } catch (e, stackTrace) {
+    } catch (e) {
       // في حالة فشل الدالة المخصصة، نستخدم الطريقة البسيطة
       try {
         _statistics = await _statisticsService.getSimpleStatistics();

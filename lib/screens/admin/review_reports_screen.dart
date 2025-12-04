@@ -3,6 +3,7 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../models/report_model.dart';
 import '../../services/report_service.dart';
+import '../../utils/error_handler.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
 import '../../utils/helpers.dart';
@@ -46,7 +47,7 @@ class _ReviewReportsScreenState extends State<ReviewReportsScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = ErrorHandler.getArabicMessage(e);
         _isLoading = false;
       });
     }
