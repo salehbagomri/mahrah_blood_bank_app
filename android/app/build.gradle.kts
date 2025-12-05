@@ -35,8 +35,8 @@ android {
         applicationId = "com.bagomri.mahrahbloodbank"
         minSdk = flutter.minSdkVersion  // Android 5.0+ support
         targetSdk = 35  // Latest Android API (Android 15)
-        versionCode = 2
-        versionName = "2.0.0"
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
         // multiDex enabled by default for minSdk >= 21
     }
 
