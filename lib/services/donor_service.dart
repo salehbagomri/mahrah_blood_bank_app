@@ -337,25 +337,16 @@ class DonorService {
   /// المتاحين = is_active = true AND (suspended_until IS NULL OR suspended_until < NOW())
   Future<int> getAvailableDonorsCount() async {
     try {
-      final now = DateTime.now();
+      final now = DateTime.now().toIso8601String();
 
-      // جلب جميع المتبرعين النشطين
+      // فلترة على مستوى قاعدة البيانات بدلاً من جلب كل البيانات
       final response = await _client
           .from('donors')
-          .select()
-          .eq('is_active', true);
+          .select('id')
+          .eq('is_active', true)
+          .or('suspended_until.is.null,suspended_until.lt.$now');
 
-      final donors = (response as List)
-          .map((json) => DonorModel.fromJson(json as Map<String, dynamic>))
-          .toList();
-
-      // فلترة المتبرعين غير الموقوفين
-      final availableDonors = donors.where((donor) {
-        // غير موقوف أو انتهى وقت الإيقاف
-        return donor.suspendedUntil == null || donor.suspendedUntil!.isBefore(now);
-      }).toList();
-
-      return availableDonors.length;
+      return (response as List).length;
     } catch (e) {
       throw Exception('فشل الحصول على عدد المتاحين: ${e.toString()}');
     }
@@ -368,9 +359,10 @@ class DonorService {
       final now = DateTime.now();
       final startOfMonth = DateTime(now.year, now.month, 1).toIso8601String();
 
+      // جلب id فقط بدلاً من كل البيانات
       final response = await _client
           .from('donors')
-          .select()
+          .select('id')
           .gte('created_at', startOfMonth);
 
       return (response as List).length;

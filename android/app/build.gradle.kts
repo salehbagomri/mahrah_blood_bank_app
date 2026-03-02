@@ -57,7 +57,7 @@ android {
             // Sign with release keystore
             signingConfig = signingConfigs.getByName("release")
 
-            // Enable R8 minification to fix DEX issue
+            // Enable R8 minification
             isMinifyEnabled = true
             isShrinkResources = true
 
