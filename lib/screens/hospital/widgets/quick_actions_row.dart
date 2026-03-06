@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../constants/app_colors.dart';
-import '../../donor/add_donor_screen.dart';
-import '../advanced_search_screen.dart';
-import '../export_reports_screen.dart';
+import '../../../config/app_router.dart';
 
 /// صف الإجراءات السريعة (3 أزرار)
 class QuickActionsRow extends StatelessWidget {
@@ -15,9 +13,9 @@ class QuickActionsRow extends StatelessWidget {
       children: [
         Text(
           'إجراءات سريعة',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         Row(
@@ -34,11 +32,7 @@ class QuickActionsRow extends StatelessWidget {
                   ],
                 ),
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const AddDonorScreen(),
-                    ),
-                  );
+                  Navigator.of(context).pushNamed(AppRouter.addDonor);
                 },
               ),
             ),
@@ -51,17 +45,12 @@ class QuickActionsRow extends StatelessWidget {
                 icon: Icons.search,
                 label: 'بحث متقدم',
                 gradient: LinearGradient(
-                  colors: [
-                    AppColors.info,
-                    AppColors.info.withOpacity(0.7),
-                  ],
+                  colors: [AppColors.info, AppColors.info.withOpacity(0.7)],
                 ),
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const AdvancedSearchScreen(),
-                    ),
-                  );
+                  Navigator.of(
+                    context,
+                  ).pushNamed(AppRouter.hospitalAdvancedSearch);
                 },
               ),
             ),
@@ -74,17 +63,12 @@ class QuickActionsRow extends StatelessWidget {
                 icon: Icons.file_download,
                 label: 'تصدير',
                 gradient: LinearGradient(
-                  colors: [
-                    AppColors.primary,
-                    AppColors.primaryDark,
-                  ],
+                  colors: [AppColors.primary, AppColors.primaryDark],
                 ),
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ExportReportsScreen(),
-                    ),
-                  );
+                  Navigator.of(
+                    context,
+                  ).pushNamed(AppRouter.hospitalExportReports);
                 },
               ),
             ),
@@ -132,11 +116,7 @@ class _QuickActionButton extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                color: Colors.white,
-                size: 28,
-              ),
+              Icon(icon, color: Colors.white, size: 28),
               const SizedBox(height: 6),
               Text(
                 label,

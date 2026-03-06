@@ -11,16 +11,13 @@ import '../../providers/donor_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
 import '../../utils/helpers.dart';
-import '../admin/edit_donor_screen.dart';
+import '../../config/app_router.dart';
 
 /// شاشة تفاصيل البلاغ المحسّنة
 class ReportDetailScreen extends StatefulWidget {
   final ReportModel report;
 
-  const ReportDetailScreen({
-    super.key,
-    required this.report,
-  });
+  const ReportDetailScreen({super.key, required this.report});
 
   @override
   State<ReportDetailScreen> createState() => _ReportDetailScreenState();
@@ -54,10 +51,14 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
       final donor = await _donorService.getDonorById(widget.report.donorId);
 
       // جلب سجل البلاغات السابقة
-      final reports = await _reportService.getReportsByDonorId(widget.report.donorId);
+      final reports = await _reportService.getReportsByDonorId(
+        widget.report.donorId,
+      );
 
       // استبعاد البلاغ الحالي من القائمة
-      final previousReports = reports.where((r) => r.id != widget.report.id).toList();
+      final previousReports = reports
+          .where((r) => r.id != widget.report.id)
+          .toList();
 
       if (mounted) {
         setState(() {
@@ -92,14 +93,14 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
       body: _isLoading
           ? const LoadingWidget(message: 'جاري تحميل البيانات...')
           : _errorMessage != null
-              ? EmptyState(
-                  icon: Icons.error_outline,
-                  title: 'حدث خطأ',
-                  message: _errorMessage!,
-                  actionLabel: 'إعادة المحاولة',
-                  onAction: _loadData,
-                )
-              : _buildContent(),
+          ? EmptyState(
+              icon: Icons.error_outline,
+              title: 'حدث خطأ',
+              message: _errorMessage!,
+              actionLabel: 'إعادة المحاولة',
+              onAction: _loadData,
+            )
+          : _buildContent(),
     );
   }
 
@@ -190,10 +191,7 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'الإجراء المقترح: ${widget.report.suggestedActionText}',
-                  style: TextStyle(
-                    color: color.withOpacity(0.8),
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: color.withOpacity(0.8), fontSize: 13),
                 ),
               ],
             ),
@@ -217,15 +215,20 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                 const SizedBox(width: 8),
                 Text(
                   'معلومات البلاغ',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const Divider(height: 24),
-            _buildInfoRow('السبب', widget.report.reasonText, Icons.error_outline),
-            if (widget.report.notes != null && widget.report.notes!.isNotEmpty) ...[
+            _buildInfoRow(
+              'السبب',
+              widget.report.reasonText,
+              Icons.error_outline,
+            ),
+            if (widget.report.notes != null &&
+                widget.report.notes!.isNotEmpty) ...[
               const SizedBox(height: 12),
               _buildNotesSection(),
             ],
@@ -236,7 +239,11 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
               Icons.calendar_today,
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('الحالة', widget.report.statusText, Icons.check_circle),
+            _buildInfoRow(
+              'الحالة',
+              widget.report.statusText,
+              Icons.check_circle,
+            ),
           ],
         ),
       ),
@@ -335,38 +342,65 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                 const SizedBox(width: 8),
                 Text(
                   'بيانات المتبرع',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const Divider(height: 24),
             _buildInfoRow('الاسم', _donor!.name, Icons.badge),
             const SizedBox(height: 12),
-            _buildInfoRow('الرقم المسجل', widget.report.donorPhoneNumber, Icons.phone, isPhone: true),
+            _buildInfoRow(
+              'الرقم المسجل',
+              widget.report.donorPhoneNumber,
+              Icons.phone,
+              isPhone: true,
+            ),
             if (_donor!.phoneNumber2 != null) ...[
               const SizedBox(height: 8),
-              _buildInfoRow('الرقم 2', _donor!.phoneNumber2!, Icons.phone, isPhone: true),
+              _buildInfoRow(
+                'الرقم 2',
+                _donor!.phoneNumber2!,
+                Icons.phone,
+                isPhone: true,
+              ),
             ],
             if (_donor!.phoneNumber3 != null) ...[
               const SizedBox(height: 8),
-              _buildInfoRow('الرقم 3', _donor!.phoneNumber3!, Icons.phone, isPhone: true),
+              _buildInfoRow(
+                'الرقم 3',
+                _donor!.phoneNumber3!,
+                Icons.phone,
+                isPhone: true,
+              ),
             ],
             const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
-                  child: _buildInfoRow('الفصيلة', _donor!.bloodType, Icons.bloodtype),
+                  child: _buildInfoRow(
+                    'الفصيلة',
+                    _donor!.bloodType,
+                    Icons.bloodtype,
+                  ),
                 ),
                 Expanded(
-                  child: _buildInfoRow('المديرية', _donor!.district, Icons.location_on),
+                  child: _buildInfoRow(
+                    'المديرية',
+                    _donor!.district,
+                    Icons.location_on,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('الحالة', _getDonorStatus(), Icons.info,
-                statusColor: _getDonorStatusColor()),
+            _buildInfoRow(
+              'الحالة',
+              _getDonorStatus(),
+              Icons.info,
+              statusColor: _getDonorStatusColor(),
+            ),
             if (_donor!.lastDonationDate != null) ...[
               const SizedBox(height: 12),
               _buildInfoRow(
@@ -480,13 +514,15 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                 Text(
                   'سجل البلاغات (${_previousReports.length} بلاغ سابق)',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
             const Divider(height: 24),
-            ..._previousReports.map((report) => _buildReportHistoryItem(report)),
+            ..._previousReports.map(
+              (report) => _buildReportHistoryItem(report),
+            ),
           ],
         ),
       ),
@@ -604,9 +640,9 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                 Text(
                   'إجراءات سريعة',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
                 ),
               ],
             ),
@@ -725,8 +761,13 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, IconData icon,
-      {bool isPhone = false, Color? statusColor}) {
+  Widget _buildInfoRow(
+    String label,
+    String value,
+    IconData icon, {
+    bool isPhone = false,
+    Color? statusColor,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -738,10 +779,7 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 2),
               Row(
@@ -782,11 +820,10 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     if (!approved || !mounted) return;
 
     // فتح شاشة التعديل
-    final result = await Navigator.push(
+    final result = await Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (context) => EditDonorScreen(donor: _donor!),
-      ),
+      AppRouter.adminEditDonor,
+      arguments: _donor!,
     );
 
     if (result == true && mounted) {
@@ -932,25 +969,23 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
   /// عرض الملف الكامل للمتبرع
   void _viewDonorFullProfile() {
     // يمكن تنفيذ هذا لاحقاً - الانتقال لشاشة إدارة المتبرعين مع تصفية
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('ميزة قيد التطوير')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('ميزة قيد التطوير')));
   }
 
   /// نسخ نص
   void _copyText(String text) {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم النسخ'),
-        duration: Duration(seconds: 1),
-      ),
+      const SnackBar(content: Text('تم النسخ'), duration: Duration(seconds: 1)),
     );
   }
 
   /// نسخ جميع البيانات
   void _copyAllData() {
-    final data = '''
+    final data =
+        '''
 === معلومات البلاغ ===
 السبب: ${widget.report.reasonText}
 الملاحظات: ${widget.report.notes ?? 'لا توجد'}

@@ -2,15 +2,19 @@ import 'package:flutter/foundation.dart';
 import '../models/donor_model.dart';
 import '../services/donor_service.dart';
 import '../utils/error_handler.dart';
+import '../config/service_locator.dart';
 
 /// Provider لإدارة حالة المتبرعين
 class DonorProvider with ChangeNotifier {
-  final DonorService _donorService = DonorService();
+  final DonorService _donorService = getIt<DonorService>();
 
   List<DonorModel> _donors = [];
   List<DonorModel> _searchResults = [];
   bool _isLoading = false;
   String? _errorMessage;
+
+  DateTime? _lastFetchTime;
+  final Duration _cacheDuration = const Duration(minutes: 5);
 
   // Getters
   List<DonorModel> get donors => _donors;
@@ -73,19 +77,21 @@ class DonorProvider with ChangeNotifier {
 
     try {
       final updatedDonor = await _donorService.updateDonor(donor);
-      
+
       // تحديث في القائمة الرئيسية
       final index = _donors.indexWhere((d) => d.id == updatedDonor.id);
       if (index != -1) {
         _donors[index] = updatedDonor;
       }
-      
+
       // تحديث في نتائج البحث
-      final searchIndex = _searchResults.indexWhere((d) => d.id == updatedDonor.id);
+      final searchIndex = _searchResults.indexWhere(
+        (d) => d.id == updatedDonor.id,
+      );
       if (searchIndex != -1) {
         _searchResults[searchIndex] = updatedDonor;
       }
-      
+
       _isLoading = false;
       notifyListeners();
       return true;
@@ -147,13 +153,20 @@ class DonorProvider with ChangeNotifier {
   }
 
   /// الحصول على جميع المتبرعين
-  Future<void> loadDonors() async {
+  Future<void> loadDonors({bool forceRefresh = false}) async {
+    if (!forceRefresh && _donors.isNotEmpty && _lastFetchTime != null) {
+      if (DateTime.now().difference(_lastFetchTime!) < _cacheDuration) {
+        return; // Use cached data
+      }
+    }
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       _donors = await _donorService.getAllDonors();
+      _lastFetchTime = DateTime.now();
     } catch (e, stackTrace) {
       _errorMessage = ErrorHandler.getArabicMessage(e);
       ErrorHandler.logError(e, stackTrace);
@@ -202,4 +215,3 @@ class DonorProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-

@@ -7,7 +7,7 @@ import '../../utils/error_handler.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
 import '../../utils/helpers.dart';
-import 'report_detail_screen.dart';
+import '../../config/app_router.dart';
 
 /// شاشة مراجعة البلاغات (للأدمن)
 class ReviewReportsScreen extends StatefulWidget {
@@ -40,7 +40,7 @@ class _ReviewReportsScreenState extends State<ReviewReportsScreen> {
       final reports = _selectedStatus == 'all'
           ? await _reportService.getAllReports()
           : await _reportService.getAllReports(status: _selectedStatus);
-      
+
       setState(() {
         _reports = reports;
         _isLoading = false;
@@ -59,17 +59,14 @@ class _ReviewReportsScreenState extends State<ReviewReportsScreen> {
       appBar: AppBar(
         title: const Text(AppStrings.reviewReports),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadReports,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadReports),
         ],
       ),
       body: Column(
         children: [
           // فلتر الحالة
           _buildStatusFilter(),
-          
+
           // قائمة البلاغات
           Expanded(child: _buildBody()),
         ],
@@ -169,11 +166,10 @@ class _ReviewReportsScreenState extends State<ReviewReportsScreen> {
   }
 
   Future<void> _openReportDetail(ReportModel report) async {
-    final result = await Navigator.push(
+    final result = await Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (context) => ReportDetailScreen(report: report),
-      ),
+      AppRouter.adminReportDetail,
+      arguments: report,
     );
 
     // إذا تم اتخاذ إجراء (قبول/رفض)، أعد تحميل القائمة
@@ -188,10 +184,7 @@ class _ReportCard extends StatelessWidget {
   final ReportModel report;
   final VoidCallback? onTap;
 
-  const _ReportCard({
-    required this.report,
-    this.onTap,
-  });
+  const _ReportCard({required this.report, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -205,111 +198,106 @@ class _ReportCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'بلاغ عن: ${report.donorPhoneNumber}',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'بلاغ عن: ${report.donorPhoneNumber}',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
                             ),
-                          ),
-                          // Badge الأولوية
-                          if (report.priority == 'critical' || report.priority == 'high')
-                            _buildPriorityBadge(),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        Helpers.formatDateTime(report.createdAt),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                      ),
-                    ],
+                            // Badge الأولوية
+                            if (report.priority == 'critical' ||
+                                report.priority == 'high')
+                              _buildPriorityBadge(),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          Helpers.formatDateTime(report.createdAt),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                _buildStatusBadge(),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Divider(height: 1),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(
-                  Icons.report_problem,
-                  size: 16,
-                  color: AppColors.warning,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'السبب: ${report.reasonText}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ],
-            ),
-            if (report.notes != null && report.notes!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.notes,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        report.notes!,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
-                  ],
-                ),
+                  _buildStatusBadge(),
+                ],
               ),
-            ],
-            // تمت إزالة الأزرار - الآن يفتح شاشة التفاصيل عند الضغط على البطاقة
-            if (report.isPending) ...[
               const SizedBox(height: 12),
               const Divider(height: 1),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.touch_app,
+                    Icons.report_problem,
                     size: 16,
-                    color: AppColors.primary,
+                    color: AppColors.warning,
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'اضغط لعرض التفاصيل واتخاذ الإجراء',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                    'السبب: ${report.reasonText}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
-            ],
+              if (report.notes != null && report.notes!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.notes,
+                        size: 16,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          report.notes!,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              // تمت إزالة الأزرار - الآن يفتح شاشة التفاصيل عند الضغط على البطاقة
+              if (report.isPending) ...[
+                const SizedBox(height: 12),
+                const Divider(height: 1),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.touch_app, size: 16, color: AppColors.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      'اضغط لعرض التفاصيل واتخاذ الإجراء',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -392,4 +380,3 @@ class _ReportCard extends StatelessWidget {
     );
   }
 }
-

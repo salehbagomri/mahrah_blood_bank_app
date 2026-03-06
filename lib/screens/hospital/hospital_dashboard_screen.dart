@@ -7,8 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
-import 'manage_donors_hospital_screen.dart';
-import 'reports_hub_screen.dart';
+import '../../config/app_router.dart';
 import 'widgets/dashboard_header.dart';
 import 'widgets/statistics_grid.dart';
 import 'widgets/enhanced_main_card.dart';
@@ -19,7 +18,8 @@ class HospitalDashboardScreen extends StatefulWidget {
   const HospitalDashboardScreen({super.key});
 
   @override
-  State<HospitalDashboardScreen> createState() => _HospitalDashboardScreenState();
+  State<HospitalDashboardScreen> createState() =>
+      _HospitalDashboardScreenState();
 }
 
 class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
@@ -153,9 +153,9 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
       children: [
         Text(
           'الأقسام الرئيسية',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         GridView.count(
@@ -174,11 +174,7 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
                 colors: [AppColors.primary, AppColors.primaryDark],
               ),
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const ManageDonorsHospitalScreen(),
-                  ),
-                );
+                Navigator.of(context).pushNamed(AppRouter.hospitalManageDonors);
               },
             ),
 
@@ -187,17 +183,10 @@ class _HospitalDashboardScreenState extends State<HospitalDashboardScreen> {
               icon: Icons.analytics,
               title: 'التقارير',
               gradient: LinearGradient(
-                colors: [
-                  AppColors.success,
-                  AppColors.success.withOpacity(0.7),
-                ],
+                colors: [AppColors.success, AppColors.success.withOpacity(0.7)],
               ),
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const ReportsHubScreen(),
-                  ),
-                );
+                Navigator.of(context).pushNamed(AppRouter.hospitalReportsHub);
               },
             ),
           ],

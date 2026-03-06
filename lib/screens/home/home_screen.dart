@@ -6,13 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../providers/statistics_provider.dart';
-import '../donor/search_donors_screen.dart';
-import '../donor/add_donor_screen.dart';
-import '../awareness/awareness_screen.dart';
-import '../reports/report_donor_screen.dart';
-import '../auth/login_screen.dart';
-import '../info/about_screen.dart';
-import '../info/contact_screen.dart';
+import '../../config/app_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// الصفحة الرئيسية للتطبيق
@@ -163,11 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         colors: [AppColors.primary, AppColors.primaryDark],
                       ),
                       onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const SearchDonorsScreen(),
-                          ),
-                        );
+                        Navigator.of(context).pushNamed(AppRouter.searchDonors);
                       },
                     ),
 
@@ -186,11 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const AddDonorScreen(),
-                          ),
-                        );
+                        Navigator.of(context).pushNamed(AppRouter.addDonor);
                       },
                     ),
 
@@ -206,11 +192,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             title: AppStrings.awareness,
                             color: AppColors.info,
                             onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const AwarenessScreen(),
-                                ),
-                              );
+                              Navigator.of(
+                                context,
+                              ).pushNamed(AppRouter.awareness);
                             },
                           ),
                         ),
@@ -224,11 +208,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             title: AppStrings.reportDonor,
                             color: AppColors.warning,
                             onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const ReportDonorScreen(),
-                                ),
-                              );
+                              Navigator.of(
+                                context,
+                              ).pushNamed(AppRouter.reportDonor);
                             },
                           ),
                         ),
@@ -255,14 +237,10 @@ class _HomeScreenState extends State<HomeScreen> {
   void _handleMenuSelection(BuildContext context, String value) {
     switch (value) {
       case 'about':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const AboutScreen()),
-        );
+        Navigator.of(context).pushNamed(AppRouter.infoAbout);
         break;
       case 'contact':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const ContactScreen()),
-        );
+        Navigator.of(context).pushNamed(AppRouter.infoContact);
         break;
       case 'rate':
         _rateApp();
@@ -304,7 +282,8 @@ class _HomeScreenState extends State<HomeScreen> {
     const String playStoreUrl =
         'https://play.google.com/store/apps/details?id=$packageName';
 
-    const String shareText = '''
+    const String shareText =
+        '''
 🩸 $appName - تطبيق ينقذ الأرواح!
 
 التطبيق يساعد على:
@@ -335,9 +314,7 @@ $playStoreUrl
   Widget _buildAdminButton(BuildContext context) {
     return IconButton(
       onPressed: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-        );
+        Navigator.of(context).pushNamed(AppRouter.login);
       },
       icon: const Icon(
         Icons.admin_panel_settings,
@@ -378,11 +355,7 @@ $playStoreUrl
                 ),
               ),
               const SizedBox(width: 6),
-              const Icon(
-                Icons.favorite,
-                color: Colors.red,
-                size: 16,
-              ),
+              const Icon(Icons.favorite, color: Colors.red, size: 16),
               const SizedBox(width: 6),
               Text(
                 'لأهالي المهرة',
@@ -403,10 +376,7 @@ $playStoreUrl
             children: [
               Text(
                 'بواسطة',
-                style: TextStyle(
-                  color: Colors.grey.shade500,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
               ),
               const SizedBox(width: 4),
               InkWell(
@@ -536,7 +506,6 @@ $playStoreUrl
       },
     );
   }
-
 }
 
 /// شريحة توعية

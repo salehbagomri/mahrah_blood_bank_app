@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/app_colors.dart';
@@ -7,8 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/loading_widget.dart';
-import '../hospital/hospital_dashboard_screen.dart';
-import '../admin/enhanced_admin_dashboard_screen.dart';
+import '../../config/app_router.dart';
 
 /// صفحة تسجيل الدخول للمستشفيات والأدمن
 class LoginScreen extends StatefulWidget {
@@ -34,9 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.login),
-      ),
+      appBar: AppBar(title: const Text(AppStrings.login)),
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
           if (authProvider.isLoading) {
@@ -73,9 +70,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     'تسجيل الدخول',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                     textAlign: TextAlign.center,
                   ),
 
@@ -84,8 +81,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     'للمستشفيات والإدارة فقط',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                      color: AppColors.textSecondary,
+                    ),
                     textAlign: TextAlign.center,
                   ),
 
@@ -153,17 +150,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(
-                            Icons.error_outline,
-                            color: AppColors.error,
-                          ),
+                          Icon(Icons.error_outline, color: AppColors.error),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               authProvider.errorMessage ?? 'حدث خطأ ما',
-                              style: TextStyle(
-                                color: AppColors.error,
-                              ),
+                              style: TextStyle(color: AppColors.error),
                             ),
                           ),
                         ],
@@ -196,9 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(width: 8),
                             Text(
                               'ملاحظة مهمة',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
+                              style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.info,
@@ -240,28 +230,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // محاولة تسجيل الدخول
     final success = await context.read<AuthProvider>().signIn(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
 
     if (!mounted) return;
 
     if (success) {
       final authProvider = context.read<AuthProvider>();
-      
+
       // توجيه المستخدم حسب نوعه
       if (authProvider.isAdmin) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const EnhancedAdminDashboardScreen(),
-          ),
-        );
+        Navigator.of(context).pushReplacementNamed(AppRouter.adminDashboard);
       } else if (authProvider.isHospital) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const HospitalDashboardScreen(),
-          ),
-        );
+        Navigator.of(context).pushReplacementNamed(AppRouter.hospitalDashboard);
       } else {
         // في حالة عدم التعرف على نوع المستخدم
         ScaffoldMessenger.of(context).showSnackBar(
@@ -275,4 +257,3 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 }
-

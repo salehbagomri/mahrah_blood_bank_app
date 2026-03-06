@@ -1,20 +1,20 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/statistics_provider.dart';
 import '../../services/report_service.dart';
 import '../../services/hospital_service.dart';
 import '../../services/donor_service.dart';
-import '../../utils/error_handler.dart';
-import 'manage_hospitals_screen.dart';
-import 'review_reports_screen.dart';
-import 'manage_donors_screen.dart';
-import 'system_overview_screen.dart';
+import '../../widgets/loading_widget.dart';
+import '../../widgets/empty_state.dart';
+import 'widgets/admin_dashboard_header.dart';
+import 'widgets/admin_statistics_grid.dart';
+import 'widgets/admin_action_card.dart';
+import '../../config/app_router.dart';
 
-/// لوحة إدارة الأدمن
+/// لوحة تحكم الأدمن المحسّنة
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
 
@@ -26,11 +26,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final _reportService = ReportService();
   final _hospitalService = HospitalService();
   final _donorService = DonorService();
-  
+
   int _pendingReportsCount = 0;
   int _totalDonors = 0;
+  int _availableDonors = 0;
   int _totalHospitals = 0;
+  int _activeHospitals = 0;
   int _suspendedDonors = 0;
+  int _inactiveDonors = 0;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -51,25 +54,34 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       // تحميل جميع البيانات بالتوازي
       final results = await Future.wait([
         _reportService.getPendingReportsCount(),
-        _hospitalService.getHospitalsCount(),
+        _hospitalService.getAllHospitals(),
         _donorService.getAllDonors(),
         _donorService.getSuspendedDonors(),
-        context.read<StatisticsProvider>().loadStatistics(),
       ]);
 
       if (mounted) {
+        final hospitals = results[1] as List;
+        final allDonors = results[2] as List;
+        final suspended = results[3] as List;
+
         setState(() {
           _pendingReportsCount = results[0] as int;
-          _totalHospitals = results[1] as int;
-          _totalDonors = (results[2] as List).length;
-          _suspendedDonors = (results[3] as List).length;
+          _totalHospitals = hospitals.length;
+          _activeHospitals = hospitals.where((h) => h.isActive).length;
+          _totalDonors = allDonors.length;
+          // المتاحين = النشطين وغير الموقوفين
+          _availableDonors = allDonors
+              .where((d) => d.isActive && !d.isSuspended)
+              .length;
+          _suspendedDonors = suspended.length;
+          _inactiveDonors = allDonors.where((d) => !d.isActive).length;
           _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'فشل تحميل البيانات: ${ErrorHandler.getArabicMessage(e)}';
+          _errorMessage = 'فشل تحميل البيانات: ${e.toString()}';
           _isLoading = false;
         });
       }
@@ -78,449 +90,273 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.adminDashboard),
-        actions: [
-          // زر تحديث
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _isLoading ? null : _loadDashboardData,
+    return Scaffold(appBar: _buildAppBar(), body: _buildBody());
+  }
+
+  AppBar _buildAppBar() {
+    return AppBar(
+      title: const Text('لوحة تحكم الأدمن'),
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.primary, AppColors.primaryDark],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          // زر تسجيل الخروج
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await context.read<AuthProvider>().signOut();
-              if (context.mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-        ],
+        ),
       ),
-      body: _errorMessage != null
-          ? _buildErrorView()
-          : RefreshIndicator(
-              onRefresh: _loadDashboardData,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                child: Column(
+      actions: [
+        // زر تسجيل الخروج
+        IconButton(
+          icon: const Icon(Icons.logout),
+          tooltip: 'تسجيل الخروج',
+          onPressed: () => _showLogoutDialog(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const LoadingWidget(message: 'جاري تحميل لوحة التحكم...');
+    }
+
+    if (_errorMessage != null) {
+      return EmptyState(
+        icon: Icons.error_outline,
+        title: 'حدث خطأ',
+        message: _errorMessage!,
+        actionLabel: 'إعادة المحاولة',
+        onAction: _loadDashboardData,
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadDashboardData,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // معلومات المستخدم
-            _AdminInfoCard(),
-            
+            // 1. Header
+            const AdminDashboardHeader(),
             const SizedBox(height: 20),
-            
-            // البلاغات المعلقة
-            if (_pendingReportsCount > 0)
-              Card(
-                color: AppColors.warning.withOpacity(0.1),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.warning_amber_rounded,
-                        color: AppColors.warning,
-                        size: 30,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'لديك $_pendingReportsCount بلاغ معلق',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'يرجى مراجعة البلاغات',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const ReviewReportsScreen(),
-                            ),
-                          ).then((_) => _loadDashboardData());
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.warning,
-                        ),
-                        child: const Text('مراجعة'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            
-            const SizedBox(height: 20),
-            
-            // الأقسام الرئيسية
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              children: [
-                _AdminCard(
-                  icon: Icons.local_hospital,
-                  title: AppStrings.manageHospitals,
-                  color: AppColors.primary,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ManageHospitalsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _AdminCard(
-                  icon: Icons.report,
-                  title: AppStrings.reviewReports,
-                  color: AppColors.warning,
-                  badge: _pendingReportsCount > 0 ? '$_pendingReportsCount' : null,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ReviewReportsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _AdminCard(
-                  icon: Icons.people,
-                  title: AppStrings.manageDonors,
-                  color: AppColors.success,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ManageDonorsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _AdminCard(
-                  icon: Icons.analytics,
-                  title: AppStrings.systemOverview,
-                  color: AppColors.info,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const SystemOverviewScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // إحصائيات سريعة
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.bar_chart,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'إحصائيات سريعة',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    if (_isLoading)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: CircularProgressIndicator(),
-                        ),
-                      )
-                    else ...[
-                      _QuickStat(
-                        icon: Icons.people,
-                        label: 'إجمالي المتبرعين',
-                        value: '$_totalDonors',
-                        color: AppColors.success,
-                      ),
-                      const Divider(),
-                      _QuickStat(
-                        icon: Icons.local_hospital,
-                        label: 'عدد المستشفيات',
-                        value: '$_totalHospitals',
-                        color: AppColors.info,
-                      ),
-                      const Divider(),
-                      _QuickStat(
-                        icon: Icons.pause_circle,
-                        label: 'متبرعين موقوفين',
-                        value: '$_suspendedDonors',
-                        color: AppColors.warning,
-                      ),
-                      const Divider(),
-                      _QuickStat(
-                        icon: Icons.report,
-                        label: 'البلاغات المعلقة',
-                        value: '$_pendingReportsCount',
-                        color: _pendingReportsCount > 0 ? AppColors.error : AppColors.success,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-            ),
-    );
-  }
 
-  Widget _buildErrorView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: AppColors.error,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'حدث خطأ',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _errorMessage ?? 'خطأ غير متوقع',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
+            // 2. الإحصائيات
+            AdminStatisticsGrid(
+              totalDonors: _totalDonors,
+              totalHospitals: _totalHospitals,
+              activeHospitals: _activeHospitals,
+              pendingReports: _pendingReportsCount,
+              suspendedDonors: _suspendedDonors,
+              availableDonors: _availableDonors,
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _loadDashboardData,
-              icon: const Icon(Icons.refresh),
-              label: const Text('إعادة المحاولة'),
-            ),
+
+            // 3. الأقسام الرئيسية
+            _buildMainSections(),
+            const SizedBox(height: 24),
+
+            // 4. أقسام إضافية
+            _buildAdditionalSections(),
           ],
         ),
       ),
     );
   }
-}
 
-/// بطاقة معلومات الأدمن
-class _AdminInfoCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, _) {
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: AppColors.primary,
-                  child: const Icon(
-                    Icons.admin_panel_settings,
-                    size: 30,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'مرحباً',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      Text(
-                        authProvider.currentUser?.email ?? 'المدير',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'مدير النظام',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+  Widget _buildMainSections() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'الإدارة الرئيسية',
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+
+        // مراجعة البلاغات
+        AdminActionCard(
+          title: 'مراجعة البلاغات',
+          subtitle: 'إدارة البلاغات الواردة من المستخدمين',
+          icon: Icons.report_problem,
+          color: _pendingReportsCount > 0
+              ? AppColors.warning
+              : AppColors.success,
+          badgeCount: _pendingReportsCount,
+          isUrgent: _pendingReportsCount > 5,
+          onTap: () => _navigateTo(AppRouter.adminReviewReports),
+        ),
+        const SizedBox(height: 12),
+
+        // إدارة المستشفيات
+        AdminActionCard(
+          title: 'إدارة المستشفيات',
+          subtitle: '$_activeHospitals مستشفى نشط من أصل $_totalHospitals',
+          icon: Icons.local_hospital,
+          color: AppColors.info,
+          onTap: () => _navigateTo(AppRouter.adminManageHospitals),
+        ),
+        const SizedBox(height: 12),
+
+        // إدارة المتبرعين
+        AdminActionCard(
+          title: 'إدارة المتبرعين',
+          subtitle:
+              '$_availableDonors متاح • $_suspendedDonors موقوف • $_inactiveDonors معطل',
+          icon: Icons.people,
+          color: AppColors.primary,
+          badgeCount: _suspendedDonors,
+          onTap: () => _navigateTo(AppRouter.adminManageDonors),
+        ),
+        const SizedBox(height: 12),
+
+        // نظرة عامة على النظام
+        AdminActionCard(
+          title: 'نظرة عامة على النظام',
+          subtitle: 'إحصائيات وتحليلات شاملة',
+          icon: Icons.analytics,
+          color: AppColors.success,
+          onTap: () => _navigateTo(AppRouter.adminSystemOverview),
+        ),
+      ],
     );
   }
-}
 
-/// بطاقة لوحة الأدمن
-class _AdminCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final Color color;
-  final String? badge;
-  final VoidCallback onTap;
+  Widget _buildAdditionalSections() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'إعدادات متقدمة',
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
 
-  const _AdminCard({
-    required this.icon,
-    required this.title,
-    required this.color,
-    this.badge,
-    required this.onTap,
-  });
+        // إحصائيات متقدمة
+        _buildSettingCard(
+          title: 'التقارير والتحليلات',
+          subtitle: 'تقارير مفصلة ورسوم بيانية',
+          icon: Icons.bar_chart,
+          color: AppColors.primary,
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('قريباً - التقارير والتحليلات المتقدمة'),
+                backgroundColor: AppColors.info,
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
 
-  @override
-  Widget build(BuildContext context) {
+        // سجل النشاط
+        _buildSettingCard(
+          title: 'سجل النشاط',
+          subtitle: 'عرض آخر العمليات والأحداث',
+          icon: Icons.history,
+          color: AppColors.info,
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('قريباً - سجل النشاط'),
+                backgroundColor: AppColors.info,
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+
+        // إعدادات النظام
+        _buildSettingCard(
+          title: 'إعدادات النظام',
+          subtitle: 'تخصيص وضبط إعدادات التطبيق',
+          icon: Icons.settings,
+          color: AppColors.textSecondary,
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('قريباً - إعدادات النظام'),
+                backgroundColor: AppColors.info,
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSettingCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return Card(
-      child: InkWell(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Stack(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 35,
-                    ),
-                  ),
-                  if (badge != null)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: AppColors.error,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          badge!,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
           ),
+          child: Icon(icon, size: 22, color: color),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: AppColors.textSecondary,
         ),
       ),
     );
   }
-}
 
-/// إحصائية سريعة
-class _QuickStat extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color? color;
+  void _navigateTo(String routeName) {
+    Navigator.of(
+      context,
+    ).pushNamed(routeName).then((_) => _loadDashboardData());
+  }
 
-  const _QuickStat({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: AppColors.textSecondary,
-            size: 20,
+  Future<void> _showLogoutDialog() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تأكيد تسجيل الخروج'),
+        content: const Text('هل تريد تسجيل الخروج من حسابك؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(AppStrings.cancel),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color ?? AppColors.primary,
-                ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('تسجيل الخروج'),
           ),
         ],
       ),
     );
+
+    if (confirmed == true && mounted) {
+      await context.read<AuthProvider>().signOut();
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    }
   }
 }
-

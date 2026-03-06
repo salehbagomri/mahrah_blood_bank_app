@@ -1,14 +1,15 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../models/hospital_model.dart';
 import '../../services/hospital_service.dart';
-import '../../utils/error_handler.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
-import 'add_hospital_screen.dart';
+import '../../utils/error_handler.dart';
+import '../../config/app_router.dart';
+import 'widgets/enhanced_hospital_card.dart';
 
-/// شاشة إدارة المستشفيات (للأدمن)
+/// شاشة إدارة المستشفيات المحسّنة
 class ManageHospitalsScreen extends StatefulWidget {
   const ManageHospitalsScreen({super.key});
 
@@ -18,14 +19,26 @@ class ManageHospitalsScreen extends StatefulWidget {
 
 class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
   final _hospitalService = HospitalService();
+  final _searchController = TextEditingController();
+
   List<HospitalModel> _hospitals = [];
+  List<HospitalModel> _filteredHospitals = [];
   bool _isLoading = true;
   String? _errorMessage;
+  String _searchQuery = '';
+  String _filterStatus = 'all'; // all, active, inactive
+  String _sortBy = 'name'; // name, date, district
 
   @override
   void initState() {
     super.initState();
-    _loadHospitals();
+    Future.microtask(() => _loadHospitals());
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadHospitals() async {
@@ -38,6 +51,7 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
       final hospitals = await _hospitalService.getAllHospitals();
       setState(() {
         _hospitals = hospitals;
+        _applyFiltersAndSort();
         _isLoading = false;
       });
     } catch (e) {
@@ -48,33 +62,86 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
     }
   }
 
+  void _applyFiltersAndSort() {
+    // تطبيق الفلتر
+    _filteredHospitals = _hospitals.where((hospital) {
+      // فلتر البحث
+      final matchesSearch =
+          _searchQuery.isEmpty ||
+          hospital.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          hospital.email.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          hospital.district.toLowerCase().contains(_searchQuery.toLowerCase());
+
+      // فلتر الحالة
+      final matchesStatus =
+          _filterStatus == 'all' ||
+          (_filterStatus == 'active' && hospital.isActive) ||
+          (_filterStatus == 'inactive' && !hospital.isActive);
+
+      return matchesSearch && matchesStatus;
+    }).toList();
+
+    // تطبيق الترتيب
+    _filteredHospitals.sort((a, b) {
+      switch (_sortBy) {
+        case 'name':
+          return a.name.compareTo(b.name);
+        case 'date':
+          return b.createdAt.compareTo(a.createdAt);
+        case 'district':
+          return a.district.compareTo(b.district);
+        default:
+          return 0;
+      }
+    });
+  }
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      _searchQuery = query;
+      _applyFiltersAndSort();
+    });
+  }
+
+  void _onFilterChanged(String filter) {
+    setState(() {
+      _filterStatus = filter;
+      _applyFiltersAndSort();
+    });
+  }
+
+  void _onSortChanged(String sort) {
+    setState(() {
+      _sortBy = sort;
+      _applyFiltersAndSort();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.manageHospitals),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadHospitals,
-          ),
-        ],
-      ),
+      appBar: _buildAppBar(),
       body: _buildBody(),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const AddHospitalScreen(),
-            ),
-          ).then((result) {
-            if (result == true) {
-              _loadHospitals();
-            }
-          });
-        },
+        onPressed: _navigateToAddHospital,
         icon: const Icon(Icons.add),
         label: const Text('إضافة مستشفى'),
+        backgroundColor: AppColors.primary,
+      ),
+    );
+  }
+
+  AppBar _buildAppBar() {
+    return AppBar(
+      title: const Text('إدارة المستشفيات'),
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.primary, AppColors.primaryDark],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
       ),
     );
   }
@@ -100,16 +167,231 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
         title: 'لا توجد مستشفيات',
         message: 'لم يتم إضافة أي مستشفى بعد',
         actionLabel: 'إضافة مستشفى',
-        onAction: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const AddHospitalScreen(),
+        onAction: _navigateToAddHospital,
+      );
+    }
+
+    return Column(
+      children: [
+        // إحصائيات سريعة
+        _buildQuickStats(),
+
+        // شريط البحث والفلاتر
+        _buildSearchAndFilters(),
+
+        // قائمة المستشفيات
+        Expanded(child: _buildHospitalsList()),
+      ],
+    );
+  }
+
+  Widget _buildQuickStats() {
+    final activeCount = _hospitals.where((h) => h.isActive).length;
+    final inactiveCount = _hospitals.length - activeCount;
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withOpacity(0.1),
+            AppColors.primaryDark.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          _buildStatItem(
+            'الإجمالي',
+            '${_hospitals.length}',
+            Icons.local_hospital,
+            AppColors.primary,
+          ),
+          const SizedBox(width: 20),
+          _buildStatItem(
+            'نشط',
+            '$activeCount',
+            Icons.check_circle,
+            AppColors.success,
+          ),
+          const SizedBox(width: 20),
+          _buildStatItem(
+            'معطل',
+            '$inactiveCount',
+            Icons.cancel,
+            AppColors.error,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Expanded(
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-          ).then((result) {
-            if (result == true) {
-              _loadHospitals();
-            }
-          });
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchAndFilters() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          // شريط البحث
+          TextField(
+            controller: _searchController,
+            onChanged: _onSearchChanged,
+            decoration: InputDecoration(
+              hintText: 'بحث عن مستشفى...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                        _onSearchChanged('');
+                      },
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              filled: true,
+              fillColor: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // الفلاتر
+          Row(
+            children: [
+              Expanded(
+                child: _buildFilterDropdown('الحالة', _filterStatus, {
+                  'all': 'الكل',
+                  'active': 'نشط',
+                  'inactive': 'معطل',
+                }, _onFilterChanged),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildFilterDropdown('الترتيب', _sortBy, {
+                  'name': 'الاسم',
+                  'date': 'التاريخ',
+                  'district': 'المديرية',
+                }, _onSortChanged),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // عدد النتائج
+          if (_filteredHospitals.length != _hospitals.length)
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.info.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.filter_list, size: 16, color: AppColors.info),
+                  const SizedBox(width: 8),
+                  Text(
+                    'عرض ${_filteredHospitals.length} من ${_hospitals.length} مستشفى',
+                    style: TextStyle(
+                      color: AppColors.info,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterDropdown(
+    String label,
+    String value,
+    Map<String, String> options,
+    Function(String) onChanged,
+  ) {
+    return DropdownButtonFormField<String>(
+      initialValue: value,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+      items: options.entries
+          .map(
+            (entry) =>
+                DropdownMenuItem(value: entry.key, child: Text(entry.value)),
+          )
+          .toList(),
+      onChanged: (newValue) {
+        if (newValue != null) {
+          onChanged(newValue);
+        }
+      },
+    );
+  }
+
+  Widget _buildHospitalsList() {
+    if (_filteredHospitals.isEmpty) {
+      return EmptyState(
+        icon: Icons.search_off,
+        title: 'لا توجد نتائج',
+        message: 'لم يتم العثور على مستشفيات تطابق البحث',
+        actionLabel: 'مسح البحث',
+        onAction: () {
+          _searchController.clear();
+          _onSearchChanged('');
+          _onFilterChanged('all');
         },
       );
     }
@@ -118,16 +400,97 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
       onRefresh: _loadHospitals,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _hospitals.length,
+        itemCount: _filteredHospitals.length,
         itemBuilder: (context, index) {
-          final hospital = _hospitals[index];
-          return _HospitalCard(
+          final hospital = _filteredHospitals[index];
+          return EnhancedHospitalCard(
             hospital: hospital,
+            onTap: () => _showHospitalDetails(hospital),
             onToggleStatus: () => _toggleHospitalStatus(hospital),
-            onEdit: () => _showEditHospitalDialog(hospital),
+            onEdit: () => _editHospital(hospital),
             onDelete: () => _deleteHospital(hospital),
           );
         },
+      ),
+    );
+  }
+
+  void _navigateToAddHospital() {
+    Navigator.of(context).pushNamed(AppRouter.adminAddHospital).then((result) {
+      if (result == true) {
+        _loadHospitals();
+      }
+    });
+  }
+
+  void _showHospitalDetails(HospitalModel hospital) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, scrollController) =>
+            _buildHospitalDetailsSheet(hospital, scrollController),
+      ),
+    );
+  }
+
+  Widget _buildHospitalDetailsSheet(
+    HospitalModel hospital,
+    ScrollController scrollController,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: ListView(
+        controller: scrollController,
+        children: [
+          // Handle
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.divider,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // العنوان
+          Text(
+            'تفاصيل المستشفى',
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+
+          // البطاقة
+          EnhancedHospitalCard(
+            hospital: hospital,
+            onTap: () {},
+            onToggleStatus: () {
+              Navigator.pop(context);
+              _toggleHospitalStatus(hospital);
+            },
+            onEdit: () {
+              Navigator.pop(context);
+              _editHospital(hospital);
+            },
+            onDelete: () {
+              Navigator.pop(context);
+              _deleteHospital(hospital);
+            },
+          ),
+        ],
       ),
     );
   }
@@ -138,7 +501,7 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
         hospital.id,
         !hospital.isActive,
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -154,7 +517,9 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل تحديث حالة المستشفى: ${ErrorHandler.getArabicMessage(e)}'),
+            content: Text(
+              'فشل تحديث حالة المستشفى: ${ErrorHandler.getArabicMessage(e)}',
+            ),
             backgroundColor: AppColors.error,
           ),
         );
@@ -162,12 +527,24 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
     }
   }
 
+  void _editHospital(HospitalModel hospital) {
+    Navigator.of(context)
+        .pushNamed(AppRouter.adminEditHospital, arguments: hospital)
+        .then((result) {
+          if (result == true) {
+            _loadHospitals();
+          }
+        });
+  }
+
   Future<void> _deleteHospital(HospitalModel hospital) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('تأكيد الحذف'),
-        content: Text('هل تريد حذف ${hospital.name}؟\n\nهذا الإجراء لا يمكن التراجع عنه.'),
+        content: Text(
+          'هل تريد حذف ${hospital.name}؟\n\nهذا الإجراء لا يمكن التراجع عنه.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -185,7 +562,7 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
     if (confirmed == true) {
       try {
         await _hospitalService.deleteHospital(hospital.id);
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -199,7 +576,9 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('فشل حذف المستشفى: ${ErrorHandler.getArabicMessage(e)}'),
+              content: Text(
+                'فشل حذف المستشفى: ${ErrorHandler.getArabicMessage(e)}',
+              ),
               backgroundColor: AppColors.error,
             ),
           );
@@ -207,145 +586,4 @@ class _ManageHospitalsScreenState extends State<ManageHospitalsScreen> {
       }
     }
   }
-
-
-  void _showEditHospitalDialog(HospitalModel hospital) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تعديل المستشفى'),
-        content: Text('تعديل ${hospital.name}'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(AppStrings.cancel),
-          ),
-        ],
-      ),
-    );
-  }
 }
-
-/// بطاقة المستشفى
-class _HospitalCard extends StatelessWidget {
-  final HospitalModel hospital;
-  final VoidCallback onToggleStatus;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _HospitalCard({
-    required this.hospital,
-    required this.onToggleStatus,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        hospital.name,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        hospital.email,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: hospital.isActive
-                        ? AppColors.success.withOpacity(0.1)
-                        : AppColors.error.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    hospital.isActive ? 'نشط' : 'معطل',
-                    style: TextStyle(
-                      color: hospital.isActive ? AppColors.success : AppColors.error,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(
-                  Icons.location_on,
-                  size: 16,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  hospital.district,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                if (hospital.phoneNumber != null) ...[
-                  const SizedBox(width: 16),
-                  Icon(
-                    Icons.phone,
-                    size: 16,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    hospital.phoneNumber!,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Divider(height: 1),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton.icon(
-                  onPressed: onToggleStatus,
-                  icon: Icon(
-                    hospital.isActive ? Icons.block : Icons.check_circle,
-                    size: 18,
-                  ),
-                  label: Text(hospital.isActive ? 'تعطيل' : 'تفعيل'),
-                ),
-                TextButton.icon(
-                  onPressed: onDelete,
-                  icon: const Icon(Icons.delete, size: 18),
-                  label: const Text(AppStrings.delete),
-                  style: TextButton.styleFrom(foregroundColor: AppColors.error),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-

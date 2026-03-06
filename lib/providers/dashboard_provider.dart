@@ -5,11 +5,12 @@ import '../models/statistics_model.dart';
 import '../services/donor_service.dart';
 import '../services/statistics_service.dart';
 import '../utils/error_handler.dart';
+import '../config/service_locator.dart';
 
 /// Provider لإدارة حالة لوحة المستشفى
 class DashboardProvider with ChangeNotifier {
-  final DonorService _donorService = DonorService();
-  final StatisticsService _statisticsService = StatisticsService();
+  final DonorService _donorService = getIt<DonorService>();
+  final StatisticsService _statisticsService = getIt<StatisticsService>();
 
   DashboardStatisticsModel? _statistics;
   bool _isLoading = false;
@@ -30,14 +31,14 @@ class DashboardProvider with ChangeNotifier {
     try {
       // تحميل جميع البيانات بالتوازي باستخدام Future.wait
       final results = await Future.wait([
-        _statisticsService.getSimpleStatistics(),        // 0
-        _donorService.getAvailableDonorsCount(),         // 1
-        _donorService.getSuspendedDonors(),              // 2
-        _donorService.getNewDonorsThisMonth(),           // 3
-        _donorService.getCoveredDistrictsCount(),        // 4
-        _donorService.getRecentDonors(limit: 5),         // 5
-        _donorService.getRecentDonations(limit: 5),      // 6
-        _donorService.getInactiveDonorsCount(),          // 7
+        _statisticsService.getSimpleStatistics(), // 0
+        _donorService.getAvailableDonorsCount(), // 1
+        _donorService.getSuspendedDonors(), // 2
+        _donorService.getNewDonorsThisMonth(), // 3
+        _donorService.getCoveredDistrictsCount(), // 4
+        _donorService.getRecentDonors(limit: 5), // 5
+        _donorService.getRecentDonations(limit: 5), // 6
+        _donorService.getInactiveDonorsCount(), // 7
       ]);
 
       final stats = results[0] as StatisticsModel;

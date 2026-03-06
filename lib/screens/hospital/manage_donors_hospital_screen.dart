@@ -7,28 +7,30 @@ import '../../providers/donor_provider.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/expandable_donor_card.dart';
-import '../donor/add_donor_screen.dart';
+import '../../config/app_router.dart';
 
 /// شاشة إدارة المتبرعين (للمستشفى) - محسّنة
 class ManageDonorsHospitalScreen extends StatefulWidget {
   const ManageDonorsHospitalScreen({super.key});
 
   @override
-  State<ManageDonorsHospitalScreen> createState() => _ManageDonorsHospitalScreenState();
+  State<ManageDonorsHospitalScreen> createState() =>
+      _ManageDonorsHospitalScreenState();
 }
 
-class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen> {
+class _ManageDonorsHospitalScreenState
+    extends State<ManageDonorsHospitalScreen> {
   final _searchController = TextEditingController();
-  
+
   // الفلاتر
   String? _selectedBloodType;
   String? _selectedDistrict;
   String? _selectedGender;
   String? _selectedStatus; // 'all', 'available', 'suspended'
   String _sortBy = 'name'; // 'name', 'date', 'bloodType'
-  
+
   bool _showFilters = false;
-  
+
   @override
   void initState() {
     super.initState();
@@ -89,11 +91,9 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const AddDonorScreen(),
-            ),
-          ).then((_) => context.read<DonorProvider>().loadDonors());
+          Navigator.of(context)
+              .pushNamed(AppRouter.addDonor)
+              .then((_) => context.read<DonorProvider>().loadDonors());
         },
         icon: const Icon(Icons.person_add),
         label: const Text('إضافة متبرع'),
@@ -160,9 +160,7 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: AppColors.divider, width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.divider, width: 1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,23 +170,21 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
             children: [
               Text(
                 'الفلاتر',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               if (_hasActiveFilters())
                 TextButton.icon(
                   onPressed: _clearFilters,
                   icon: const Icon(Icons.clear_all, size: 18),
                   label: const Text('مسح الكل'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.error,
-                  ),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.error),
                 ),
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // فصيلة الدم
           Wrap(
             spacing: 8,
@@ -209,9 +205,9 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // المديرية والجنس والحالة
           Row(
             children: [
@@ -240,11 +236,12 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
                       (d) => DropdownMenuItem(value: d, child: Text(d)),
                     ),
                   ],
-                  onChanged: (value) => setState(() => _selectedDistrict = value),
+                  onChanged: (value) =>
+                      setState(() => _selectedDistrict = value),
                 ),
               ),
               const SizedBox(width: 8),
-              
+
               // الجنس
               Expanded(
                 child: DropdownButtonFormField<String>(
@@ -274,9 +271,9 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // الحالة والترتيب
           Row(
             children: [
@@ -308,7 +305,7 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
                 ),
               ),
               const SizedBox(width: 8),
-              
+
               // الترتيب
               Expanded(
                 child: DropdownButtonFormField<String>(
@@ -331,9 +328,13 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
                   items: const [
                     DropdownMenuItem(value: 'name', child: Text('الاسم')),
                     DropdownMenuItem(value: 'date', child: Text('التاريخ')),
-                    DropdownMenuItem(value: 'bloodType', child: Text('الفصيلة')),
+                    DropdownMenuItem(
+                      value: 'bloodType',
+                      child: Text('الفصيلة'),
+                    ),
                   ],
-                  onChanged: (value) => setState(() => _sortBy = value ?? 'name'),
+                  onChanged: (value) =>
+                      setState(() => _sortBy = value ?? 'name'),
                 ),
               ),
             ],
@@ -350,8 +351,12 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
         if (provider.isLoading) return const SizedBox.shrink();
 
         final filteredDonors = _applyFilters(provider.donors);
-        final availableCount = filteredDonors.where((d) => !d.isSuspended).length;
-        final suspendedCount = filteredDonors.where((d) => d.isSuspended).length;
+        final availableCount = filteredDonors
+            .where((d) => !d.isSuspended)
+            .length;
+        final suspendedCount = filteredDonors
+            .where((d) => d.isSuspended)
+            .length;
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -415,10 +420,7 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
         ),
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 11,
-            color: AppColors.textSecondary,
-          ),
+          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
         ),
       ],
     );
@@ -516,22 +518,29 @@ class _ManageDonorsHospitalScreenState extends State<ManageDonorsHospitalScreen>
     // البحث النصي
     if (_searchController.text.isNotEmpty) {
       final query = _searchController.text.toLowerCase();
-      filtered = filtered.where((d) =>
-        d.name.toLowerCase().contains(query) ||
-        d.phoneNumber.contains(query) ||
-        (d.phoneNumber2?.contains(query) ?? false) ||
-        (d.phoneNumber3?.contains(query) ?? false)
-      ).toList();
+      filtered = filtered
+          .where(
+            (d) =>
+                d.name.toLowerCase().contains(query) ||
+                d.phoneNumber.contains(query) ||
+                (d.phoneNumber2?.contains(query) ?? false) ||
+                (d.phoneNumber3?.contains(query) ?? false),
+          )
+          .toList();
     }
 
     // فصيلة الدم
     if (_selectedBloodType != null) {
-      filtered = filtered.where((d) => d.bloodType == _selectedBloodType).toList();
+      filtered = filtered
+          .where((d) => d.bloodType == _selectedBloodType)
+          .toList();
     }
 
     // المديرية
     if (_selectedDistrict != null) {
-      filtered = filtered.where((d) => d.district == _selectedDistrict).toList();
+      filtered = filtered
+          .where((d) => d.district == _selectedDistrict)
+          .toList();
     }
 
     // الجنس

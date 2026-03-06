@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
-import 'reports/blood_type_detailed_report_screen.dart';
-import 'reports/district_report_screen.dart';
-import 'reports/availability_report_screen.dart';
-import 'reports/monthly_summary_report_screen.dart';
-import 'reports/comprehensive_report_screen.dart';
+import '../../../config/app_router.dart';
 
 /// محور التقارير - الشاشة الرئيسية لجميع التقارير
 class ReportsHubScreen extends StatelessWidget {
@@ -41,9 +37,7 @@ class ReportsHubScreen extends StatelessWidget {
                   ],
                 ),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.info.withOpacity(0.3),
-                ),
+                border: Border.all(color: AppColors.info.withOpacity(0.3)),
               ),
               child: Row(
                 children: [
@@ -105,11 +99,9 @@ class ReportsHubScreen extends StatelessWidget {
         gradient: LinearGradient(
           colors: [Colors.red.shade400, Colors.red.shade600],
         ),
-        onTap: () => Navigator.push(
+        onTap: () => Navigator.pushNamed(
           context,
-          MaterialPageRoute(
-            builder: (_) => const BloodTypeDetailedReportScreen(),
-          ),
+          AppRouter.hospitalReportBloodTypeDetailed,
         ),
       ),
       _ReportItem(
@@ -119,12 +111,8 @@ class ReportsHubScreen extends StatelessWidget {
         gradient: LinearGradient(
           colors: [Colors.blue.shade400, Colors.blue.shade600],
         ),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const DistrictReportScreen(),
-          ),
-        ),
+        onTap: () =>
+            Navigator.pushNamed(context, AppRouter.hospitalReportDistrict),
       ),
       _ReportItem(
         icon: Icons.check_circle,
@@ -133,12 +121,8 @@ class ReportsHubScreen extends StatelessWidget {
         gradient: LinearGradient(
           colors: [Colors.green.shade400, Colors.green.shade600],
         ),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const AvailabilityReportScreen(),
-          ),
-        ),
+        onTap: () =>
+            Navigator.pushNamed(context, AppRouter.hospitalReportAvailability),
       ),
       _ReportItem(
         icon: Icons.calendar_month,
@@ -147,11 +131,9 @@ class ReportsHubScreen extends StatelessWidget {
         gradient: LinearGradient(
           colors: [Colors.purple.shade400, Colors.purple.shade600],
         ),
-        onTap: () => Navigator.push(
+        onTap: () => Navigator.pushNamed(
           context,
-          MaterialPageRoute(
-            builder: (_) => const MonthlySummaryReportScreen(),
-          ),
+          AppRouter.hospitalReportMonthlySummary,
         ),
       ),
       _ReportItem(
@@ -161,17 +143,15 @@ class ReportsHubScreen extends StatelessWidget {
         gradient: LinearGradient(
           colors: [Colors.orange.shade400, Colors.orange.shade600],
         ),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const ComprehensiveReportScreen(),
-          ),
-        ),
+        onTap: () =>
+            Navigator.pushNamed(context, AppRouter.hospitalReportComprehensive),
       ),
     ];
 
     return Column(
-      children: reports.map((report) => _buildReportCard(context, report)).toList(),
+      children: reports
+          .map((report) => _buildReportCard(context, report))
+          .toList(),
     );
   }
 
@@ -206,11 +186,7 @@ class ReportsHubScreen extends StatelessWidget {
                       color: Colors.white.withOpacity(0.25),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      report.icon,
-                      color: Colors.white,
-                      size: 28,
-                    ),
+                    child: Icon(report.icon, color: Colors.white, size: 28),
                   ),
 
                   const SizedBox(width: 16),
@@ -277,4 +253,3 @@ class _ReportItem {
     required this.onTap,
   });
 }
-

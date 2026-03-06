@@ -6,16 +6,13 @@ import '../../../constants/app_colors.dart';
 import '../../../models/donor_model.dart';
 import '../../../providers/donor_provider.dart';
 import '../../../utils/helpers.dart';
-import '../edit_donor_screen.dart';
+import '../../../config/app_router.dart';
 
 /// بطاقة متبرع محسّنة للأدمن - صلاحيات كاملة
 class AdminDonorCard extends StatefulWidget {
   final DonorModel donor;
 
-  const AdminDonorCard({
-    super.key,
-    required this.donor,
-  });
+  const AdminDonorCard({super.key, required this.donor});
 
   @override
   State<AdminDonorCard> createState() => _AdminDonorCardState();
@@ -104,8 +101,8 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
                     child: Text(
                       widget.donor.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -119,17 +116,13 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Icon(
-                    Icons.phone,
-                    size: 14,
-                    color: AppColors.textSecondary,
-                  ),
+                  Icon(Icons.phone, size: 14, color: AppColors.textSecondary),
                   const SizedBox(width: 4),
                   Text(
                     widget.donor.phoneNumber,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -168,18 +161,12 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
       decoration: BoxDecoration(
         color: statusColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: statusColor.withOpacity(0.5),
-        ),
+        border: Border.all(color: statusColor.withOpacity(0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            statusIcon,
-            size: 14,
-            color: statusColor,
-          ),
+          Icon(statusIcon, size: 14, color: statusColor),
           const SizedBox(width: 4),
           Text(
             status,
@@ -280,18 +267,12 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
         const SizedBox(width: 8),
         Text(
           '$label: ',
-          style: const TextStyle(
-            fontSize: 13,
-            color: AppColors.textSecondary,
-          ),
+          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
           ),
         ),
         if (copyable)
@@ -361,7 +342,9 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
             _buildActionChip(
               label: widget.donor.isActive ? 'تعطيل الحساب' : 'تفعيل الحساب',
               icon: widget.donor.isActive ? Icons.block : Icons.check_circle,
-              color: widget.donor.isActive ? AppColors.error : AppColors.success,
+              color: widget.donor.isActive
+                  ? AppColors.error
+                  : AppColors.success,
               onTap: () => _toggleActiveStatus(context),
             ),
 
@@ -460,9 +443,7 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.warning,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.warning),
             child: const Text('إيقاف'),
           ),
         ],
@@ -491,8 +472,9 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
         isActive: widget.donor.isActive,
       );
 
-      final success =
-          await context.read<DonorProvider>().updateDonor(updatedDonor);
+      final success = await context.read<DonorProvider>().updateDonor(
+        updatedDonor,
+      );
 
       if (context.mounted && success) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -521,9 +503,7 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
             child: const Text('تأكيد'),
           ),
         ],
@@ -551,8 +531,9 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
         isActive: widget.donor.isActive,
       );
 
-      final success =
-          await context.read<DonorProvider>().updateDonor(updatedDonor);
+      final success = await context.read<DonorProvider>().updateDonor(
+        updatedDonor,
+      );
 
       if (context.mounted && success) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -604,8 +585,9 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
         isActive: widget.donor.isActive,
       );
 
-      final success =
-          await context.read<DonorProvider>().updateDonor(updatedDonor);
+      final success = await context.read<DonorProvider>().updateDonor(
+        updatedDonor,
+      );
 
       if (context.mounted && success) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -620,11 +602,10 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
 
   /// تعديل بيانات المتبرع
   Future<void> _editDonor(BuildContext context) async {
-    final result = await Navigator.push(
+    final result = await Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (context) => EditDonorScreen(donor: widget.donor),
-      ),
+      AppRouter.adminEditDonor,
+      arguments: widget.donor,
     );
 
     // إذا تم الحفظ بنجاح، لا حاجة لإعادة تحميل البيانات
@@ -639,8 +620,7 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-            widget.donor.isActive ? 'تعطيل الحساب' : 'تفعيل الحساب'),
+        title: Text(widget.donor.isActive ? 'تعطيل الحساب' : 'تفعيل الحساب'),
         content: Text(
           widget.donor.isActive
               ? 'هل تريد تعطيل حساب ${widget.donor.name}؟\n\nالحساب المعطل لن يظهر في البحث.'
@@ -654,11 +634,11 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  widget.donor.isActive ? AppColors.error : AppColors.success,
+              backgroundColor: widget.donor.isActive
+                  ? AppColors.error
+                  : AppColors.success,
             ),
-            child:
-                Text(widget.donor.isActive ? 'تعطيل' : 'تفعيل'),
+            child: Text(widget.donor.isActive ? 'تعطيل' : 'تفعيل'),
           ),
         ],
       ),
@@ -685,16 +665,15 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
         isActive: !widget.donor.isActive,
       );
 
-      final success =
-          await context.read<DonorProvider>().updateDonor(updatedDonor);
+      final success = await context.read<DonorProvider>().updateDonor(
+        updatedDonor,
+      );
 
       if (context.mounted && success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              widget.donor.isActive
-                  ? 'تم تعطيل الحساب'
-                  : 'تم تفعيل الحساب',
+              widget.donor.isActive ? 'تم تعطيل الحساب' : 'تم تفعيل الحساب',
             ),
             backgroundColor: AppColors.success,
           ),
@@ -735,9 +714,7 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('حذف نهائي'),
           ),
         ],
@@ -745,8 +722,9 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
     );
 
     if (confirmed == true && context.mounted) {
-      final success =
-          await context.read<DonorProvider>().deleteDonor(widget.donor.id);
+      final success = await context.read<DonorProvider>().deleteDonor(
+        widget.donor.id,
+      );
 
       if (context.mounted && success) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -771,7 +749,8 @@ class _AdminDonorCardState extends State<AdminDonorCard> {
       status = 'متاح';
     }
 
-    final data = '''
+    final data =
+        '''
 الاسم: ${widget.donor.name}
 فصيلة الدم: ${widget.donor.bloodType}
 الهاتف 1: ${widget.donor.phoneNumber}
@@ -816,4 +795,3 @@ ${widget.donor.lastDonationDate != null ? 'آخر تبرع: ${DateFormat('yyyy-M
     return AppColors.primary;
   }
 }
-

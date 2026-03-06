@@ -2,10 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_service.dart';
 import '../utils/error_handler.dart';
+import '../config/service_locator.dart';
 
 /// Provider لإدارة حالة المصادقة
 class AuthProvider with ChangeNotifier {
-  final SupabaseService _supabaseService = SupabaseService();
+  final SupabaseService _supabaseService = getIt<SupabaseService>();
 
   User? _currentUser;
   String? _userType; // 'admin' or 'hospital' or null
@@ -56,10 +57,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   /// تسجيل الدخول
-  Future<bool> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> signIn({required String email, required String password}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -147,4 +145,3 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-

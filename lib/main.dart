@@ -13,12 +13,17 @@ import 'providers/auth_provider.dart';
 import 'providers/donor_provider.dart';
 import 'providers/statistics_provider.dart';
 import 'providers/dashboard_provider.dart';
-import 'screens/home/home_screen.dart';
+
 import 'utils/firebase_error_logger.dart';
+import 'config/app_router.dart';
+import 'config/service_locator.dart';
 
 void main() async {
   // تأكد من تهيئة Flutter
   WidgetsFlutterBinding.ensureInitialized();
+
+  // تهيئة Services (Dependency Injection)
+  setupServiceLocator();
 
   // تهيئة Firebase (ستحتاج لإضافة google-services.json/GoogleService-Info.plist)
   try {
@@ -27,7 +32,9 @@ void main() async {
     debugPrint('✅ تم تهيئة Firebase Crashlytics بنجاح');
   } catch (e) {
     debugPrint('⚠️ تحذير: لم يتم تهيئة Firebase - سيعمل التطبيق بدونه');
-    debugPrint('لتفعيل Crashlytics، أضف google-services.json للـ Android و GoogleService-Info.plist للـ iOS');
+    debugPrint(
+      'لتفعيل Crashlytics، أضف google-services.json للـ Android و GoogleService-Info.plist للـ iOS',
+    );
   }
 
   // تثبيت اتجاه الشاشة (عمودي فقط)
@@ -88,6 +95,9 @@ class MahrahBloodBankApp extends StatelessWidget {
           );
         },
 
+        // تحديد المولد المركزي للمسارات
+        onGenerateRoute: AppRouter.generateRoute,
+
         // الصفحة الرئيسية
         home: const SplashScreen(),
       ),
@@ -124,9 +134,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // الانتقال إلى الصفحة الرئيسية
     if (mounted) {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+      Navigator.of(context).pushReplacementNamed(AppRouter.home);
     }
   }
 

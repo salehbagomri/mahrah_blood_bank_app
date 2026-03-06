@@ -65,7 +65,7 @@ class _BloodTypeReportScreenState extends State<BloodTypeReportScreen> {
           }
 
           return RefreshIndicator(
-            onRefresh: () => provider.loadStatistics(),
+            onRefresh: () => provider.refreshStatistics(),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
@@ -74,14 +74,14 @@ class _BloodTypeReportScreenState extends State<BloodTypeReportScreen> {
                 children: [
                   // ملخص عام
                   _buildSummaryCard(stats.totalDonors),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // توزيع فصائل الدم
                   _buildDistributionCard(stats.bloodTypeDistribution),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // أكثر/أقل فصائل الدم
                   _buildExtremeTypesCard(stats.bloodTypeDistribution),
                 ],
@@ -99,24 +99,20 @@ class _BloodTypeReportScreenState extends State<BloodTypeReportScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Icon(
-              Icons.people,
-              size: 48,
-              color: AppColors.primary,
-            ),
+            Icon(Icons.people, size: 48, color: AppColors.primary),
             const SizedBox(height: 12),
             Text(
               '$totalDonors',
               style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Text(
               'إجمالي المتبرعين',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -139,16 +135,13 @@ class _BloodTypeReportScreenState extends State<BloodTypeReportScreen> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.bloodtype,
-                  color: AppColors.primary,
-                ),
+                Icon(Icons.bloodtype, color: AppColors.primary),
                 const SizedBox(width: 8),
                 Text(
                   'توزيع فصائل الدم',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -156,7 +149,7 @@ class _BloodTypeReportScreenState extends State<BloodTypeReportScreen> {
             ...sortedEntries.map((entry) {
               final percentage = (entry.value / total * 100);
               final color = _getBloodTypeColor(entry.key);
-              
+
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Column(
@@ -188,7 +181,9 @@ class _BloodTypeReportScreenState extends State<BloodTypeReportScreen> {
                             const SizedBox(width: 12),
                             Text(
                               '${entry.value} متبرع',
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ],
                         ),
@@ -239,12 +234,12 @@ class _BloodTypeReportScreenState extends State<BloodTypeReportScreen> {
           children: [
             Text(
               'إحصائيات خاصة',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            
+
             // أكثر فصيلة
             Container(
               padding: const EdgeInsets.all(12),
@@ -295,9 +290,9 @@ class _BloodTypeReportScreenState extends State<BloodTypeReportScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // أقل فصيلة
             Container(
               padding: const EdgeInsets.all(12),
@@ -366,4 +361,3 @@ class _BloodTypeReportScreenState extends State<BloodTypeReportScreen> {
     return AppColors.primary;
   }
 }
-
