@@ -37,8 +37,10 @@ import '../screens/info/about_screen.dart';
 import '../screens/info/contact_screen.dart';
 import '../screens/awareness/awareness_screen.dart';
 import '../screens/reports/report_donor_screen.dart';
+import '../main.dart'; // SplashScreen
 
 class AppRouter {
+  static const String splash = '/splash';
   static const String home = '/';
   static const String login = '/login';
 
@@ -79,6 +81,13 @@ class AppRouter {
 
   static Route<dynamic>? generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      // ── Splash ───────────────────────────────────────────────────
+      case splash:
+        return AppPageTransitions.fade(
+          const SplashScreen(),
+          settings: settings,
+        );
+
       // ── الشاشات الجذرية → Fade ──────────────────────────────────
       case home:
         return AppPageTransitions.fade(const HomeScreen(), settings: settings);

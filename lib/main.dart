@@ -30,8 +30,17 @@ void main() async {
   // تهيئة Hive للتخزين المحلي (Offline Mode)
   await CacheService.initialize();
 
-  // بدء مراقبة الاتصال بالإنترنت
-  await getIt<ConnectivityService>().initialize();
+  // بدء مراقبة الاتصال بالإنترنت (بدون blocking)
+  try {
+    await getIt<ConnectivityService>().initialize().timeout(
+      const Duration(seconds: 3),
+      onTimeout: () {
+        debugPrint('⚠️ ConnectivityService: timeout — سيُستكمل لاحقاً');
+      },
+    );
+  } catch (e) {
+    debugPrint('⚠️ ConnectivityService: فشل التهيئة — $e');
+  }
 
   // تهيئة Firebase (ستحتاج لإضافة google-services.json/GoogleService-Info.plist)
   try {
@@ -106,8 +115,8 @@ class MahrahBloodBankApp extends StatelessWidget {
         // تحديد المولد المركزي للمسارات
         onGenerateRoute: AppRouter.generateRoute,
 
-        // الصفحة الرئيسية
-        home: const SplashScreen(),
+        // المسار الافتراضي (Splash)
+        initialRoute: '/splash',
       ),
     );
   }
