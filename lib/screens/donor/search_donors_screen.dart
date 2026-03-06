@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,7 +9,7 @@ import '../../widgets/expandable_donor_card.dart';
 import '../../widgets/shimmer_loading.dart';
 import '../../widgets/empty_state.dart';
 
-/// صفحة البحث المحسّنة عن المتبرعين
+/// صفحة البحث عن المتبرعين
 class SearchDonorsScreen extends StatefulWidget {
   const SearchDonorsScreen({super.key});
 
@@ -25,13 +24,7 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
   String? _selectedDistrict;
   String? _selectedGender;
   String _sortBy = 'name'; // name | district | blood_type
-  bool _availableOnly = true;
   bool _hasSearched = false;
-
-  // بحث نصي
-  final TextEditingController _textController = TextEditingController();
-  Timer? _debounce;
-  bool _isTextSearch = false; // هل البحث الحالي نصي أم متقدم؟
 
   // فصائل الدم الـ 8
   static const List<String> _bloodTypes = [
@@ -72,79 +65,44 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
 
   @override
   void dispose() {
-    _textController.dispose();
-    _debounce?.cancel();
     _animController.dispose();
     super.dispose();
   }
 
   // ==================== منطق البحث ====================
 
-  /// البحث النصي (مع Debounce 600ms)
-  void _onTextChanged(String query) {
-    _debounce?.cancel();
-    if (query.isEmpty) {
-      setState(() {
-        _isTextSearch = false;
-        _hasSearched = false;
-      });
-      context.read<DonorProvider>().clearSearchResults();
-      return;
-    }
-
-    _debounce = Timer(const Duration(milliseconds: 600), () {
-      if (!mounted) return;
-      setState(() {
-        _isTextSearch = true;
-        _hasSearched = true;
-        _selectedBloodType = null; // مسح الفصيلة عند البحث النصي
-      });
-      context.read<DonorProvider>().searchByNameOrPhone(query);
-      _animController
-        ..reset()
-        ..forward();
-    });
-  }
-
-  /// البحث بالفصيلة (اضغطة واحدة)
-  void _onBloodTypeChipTap(String bloodType) {
-    final newType = _selectedBloodType == bloodType ? null : bloodType;
-    setState(() {
-      _selectedBloodType = newType;
-      _isTextSearch = false;
-      _textController.clear();
-    });
-    if (newType != null) {
-      _performAdvancedSearch();
-    } else {
+  /// تنفيذ البحث تلقائياً عند تغيير أي فلتر
+  void _performSearch() {
+    if (_selectedBloodType == null && _selectedDistrict == null) {
+      // لا يوجد معيار بحث — امسح النتائج
       setState(() => _hasSearched = false);
       context.read<DonorProvider>().clearSearchResults();
-    }
-  }
-
-  /// البحث المتقدم (فصيلة + مديرية + جنس + ترتيب)
-  void _performAdvancedSearch() {
-    if (_selectedBloodType == null && _selectedDistrict == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('اختر فصيلة الدم أو المديرية للبحث'),
-          backgroundColor: AppColors.warning,
-        ),
-      );
       return;
     }
-    setState(() {
-      _hasSearched = true;
-      _isTextSearch = false;
-    });
+
+    setState(() => _hasSearched = true);
     context.read<DonorProvider>().searchDonors(
       bloodType: _selectedBloodType,
       district: _selectedDistrict,
-      availableOnly: _availableOnly,
+      availableOnly: true, // دائماً يُظهر المتاحين فقط
     );
     _animController
       ..reset()
       ..forward();
+  }
+
+  /// اختيار فصيلة الدم (ضغطة واحدة)
+  void _onBloodTypeChipTap(String bloodType) {
+    setState(() {
+      _selectedBloodType = _selectedBloodType == bloodType ? null : bloodType;
+    });
+    _performSearch();
+  }
+
+  /// اختيار المديرية
+  void _onDistrictChanged(String? district) {
+    setState(() => _selectedDistrict = district);
+    _performSearch();
   }
 
   /// مسح كل شيء
@@ -153,15 +111,13 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
       _selectedBloodType = null;
       _selectedDistrict = null;
       _selectedGender = null;
+      _sortBy = 'name';
       _hasSearched = false;
-      _isTextSearch = false;
     });
-    _textController.clear();
-    _debounce?.cancel();
     context.read<DonorProvider>().clearSearchResults();
   }
 
-  // ==================== الفلترة المحلية للنتائج ====================
+  // ==================== الفلترة المحلية ====================
 
   List _filteredResults(List donors) {
     var list = List.from(donors);
@@ -199,64 +155,37 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
             ),
           ),
         ),
+        actions: [
+          if (_hasSearched)
+            IconButton(
+              icon: const Icon(Icons.clear_all),
+              tooltip: 'مسح الكل',
+              onPressed: _clearAll,
+            ),
+        ],
       ),
       body: Column(
         children: [
-          // ==================== قسم البحث ====================
+          // ==================== قسم الفلاتر ====================
           Container(
             color: Colors.white,
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ---- شريط البحث النصي ----
-                TextField(
-                  controller: _textController,
-                  onChanged: _onTextChanged,
-                  textDirection: TextDirection.rtl,
-                  decoration: InputDecoration(
-                    hintText: 'ابحث بالاسم أو رقم الهاتف...',
-                    hintTextDirection: TextDirection.rtl,
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: AppColors.primary,
-                    ),
-                    suffixIcon: _textController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear, size: 20),
-                            onPressed: () {
-                              _textController.clear();
-                              _onTextChanged('');
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: const BorderSide(
-                        color: AppColors.primary,
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    filled: true,
-                    fillColor: AppColors.background,
-                  ),
+                // ---- 1. المديرية ----
+                CustomDropdown(
+                  value: _selectedDistrict,
+                  items: AppStrings.districts,
+                  hint: AppStrings.selectDistrict,
+                  label: AppStrings.district,
+                  icon: Icons.location_on,
+                  onChanged: _onDistrictChanged,
                 ),
 
                 const SizedBox(height: 14),
 
-                // ---- عنوان: فصيلة الدم بضغطة واحدة ----
+                // ---- 2. فصيلة الدم ----
                 Row(
                   children: [
                     const Icon(
@@ -338,7 +267,7 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
 
                 const SizedBox(height: 12),
 
-                // ---- فلاتر إضافية (قابلة للطي) ----
+                // ---- 3. فلاتر إضافية (جنس + ترتيب) ----
                 _buildAdvancedFilters(),
               ],
             ),
@@ -358,7 +287,7 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
                     title: 'حدث خطأ',
                     message: provider.errorMessage ?? 'حدث خطأ غير متوقع',
                     actionLabel: 'إعادة المحاولة',
-                    onAction: _performAdvancedSearch,
+                    onAction: _performSearch,
                   );
                 }
 
@@ -407,7 +336,7 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
 
   // ==================== Widgets مساعدة ====================
 
-  /// فلاتر إضافية قابلة للطي
+  /// فلاتر إضافية قابلة للطي (جنس + ترتيب فقط)
   Widget _buildAdvancedFilters() {
     return ExpansionTile(
       key: const Key('advanced_filters'),
@@ -425,7 +354,7 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
               fontWeight: FontWeight.w600,
             ),
           ),
-          if (_selectedDistrict != null || _selectedGender != null) ...[
+          if (_selectedGender != null) ...[
             const SizedBox(width: 8),
             Container(
               width: 8,
@@ -440,21 +369,6 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
       ),
       children: [
         const SizedBox(height: 4),
-
-        // مديرية
-        CustomDropdown(
-          value: _selectedDistrict,
-          items: AppStrings.districts,
-          hint: AppStrings.selectDistrict,
-          label: AppStrings.district,
-          icon: Icons.location_on,
-          onChanged: (v) {
-            setState(() => _selectedDistrict = v);
-            if (_hasSearched) _performAdvancedSearch();
-          },
-        ),
-
-        const SizedBox(height: 10),
 
         // جنس + ترتيب في صف واحد
         Row(
@@ -526,73 +440,6 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
             ),
           ],
         ),
-
-        const SizedBox(height: 10),
-
-        // متاح للتبرع + زر بحث
-        Row(
-          children: [
-            // سويتش "متاح فقط"
-            Expanded(
-              child: Row(
-                children: [
-                  Switch.adaptive(
-                    value: _availableOnly,
-                    activeColor: AppColors.success,
-                    onChanged: (v) {
-                      setState(() => _availableOnly = v);
-                      if (_hasSearched && !_isTextSearch) {
-                        _performAdvancedSearch();
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      'متاحون فقط',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            // زر بحث
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _performAdvancedSearch,
-                icon: const Icon(Icons.search, size: 18),
-                label: const Text('بحث'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 11,
-                    horizontal: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        if (_hasSearched)
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: _clearAll,
-              icon: const Icon(Icons.clear_all, size: 16),
-              label: const Text('مسح الكل'),
-              style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            ),
-          ),
       ],
     );
   }
@@ -663,7 +510,7 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
     );
   }
 
-  /// رأس النتائج مع عدادها وخيار الترتيب
+  /// رأس النتائج
   Widget _buildResultsHeader(int count) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -754,7 +601,7 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'اكتب الاسم أو الرقم في الأعلى\nأو اضغط على فصيلة الدم مباشرةً',
+            'اختر المديرية أو فصيلة الدم للبحث\nالنتائج تظهر تلقائياً',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.textSecondary,
@@ -763,12 +610,11 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
             ),
           ),
           const SizedBox(height: 32),
-          // نصائح سريعة
+          _buildTip(Icons.location_on, 'اختر المديرية للبحث بالموقع'),
+          const SizedBox(height: 10),
           _buildTip(Icons.touch_app, 'اضغط فصيلة الدم للبحث الفوري'),
           const SizedBox(height: 10),
-          _buildTip(Icons.search, 'ابحث بالاسم أو رقم الهاتف نصياً'),
-          const SizedBox(height: 10),
-          _buildTip(Icons.tune, 'استخدم الفلاتر للتضييق أكثر'),
+          _buildTip(Icons.tune, 'استخدم الفلاتر الإضافية للتخصيص'),
           const SizedBox(height: 10),
           _buildTip(Icons.wifi_off, 'يعمل بدون إنترنت بالبيانات المحفوظة'),
         ],
