@@ -7,6 +7,8 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_strings.dart';
 import '../../providers/statistics_provider.dart';
 import '../../config/app_router.dart';
+import '../../config/service_locator.dart';
+import '../../services/connectivity_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// الصفحة الرئيسية للتطبيق
@@ -19,6 +21,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentSlideIndex = 0;
+  bool _isOffline = false;
 
   @override
   void initState() {
@@ -26,6 +29,18 @@ class _HomeScreenState extends State<HomeScreen> {
     // تحميل الإحصائيات عند فتح التطبيق
     Future.microtask(() {
       context.read<StatisticsProvider>().loadStatistics();
+    });
+
+    // مراقبة حالة الاتصال
+    _isOffline = !getIt<ConnectivityService>().isConnected;
+    getIt<ConnectivityService>().onConnectivityChanged.listen((isConnected) {
+      if (mounted) {
+        setState(() => _isOffline = !isConnected);
+        if (isConnected) {
+          // عند عودة الاتصال، نحدث الإحصائيات
+          context.read<StatisticsProvider>().refreshStatistics();
+        }
+      }
     });
 
     // Auto-play
@@ -135,6 +150,32 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
+              // بانر عدم الاتصال
+              if (_isOffline)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 16,
+                  ),
+                  color: Colors.orange.shade700,
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.wifi_off, color: Colors.white, size: 18),
+                      SizedBox(width: 8),
+                      Text(
+                        'لا يوجد اتصال — يتم عرض البيانات المحفوظة',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               const SizedBox(height: 16),
 
               // سلايدر التوعية

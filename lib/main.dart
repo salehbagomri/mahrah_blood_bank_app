@@ -17,6 +17,8 @@ import 'providers/dashboard_provider.dart';
 import 'utils/firebase_error_logger.dart';
 import 'config/app_router.dart';
 import 'config/service_locator.dart';
+import 'services/cache_service.dart';
+import 'services/connectivity_service.dart';
 
 void main() async {
   // تأكد من تهيئة Flutter
@@ -24,6 +26,12 @@ void main() async {
 
   // تهيئة Services (Dependency Injection)
   setupServiceLocator();
+
+  // تهيئة Hive للتخزين المحلي (Offline Mode)
+  await CacheService.initialize();
+
+  // بدء مراقبة الاتصال بالإنترنت
+  await getIt<ConnectivityService>().initialize();
 
   // تهيئة Firebase (ستحتاج لإضافة google-services.json/GoogleService-Info.plist)
   try {
