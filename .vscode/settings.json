@@ -7,5 +7,18 @@
             "path": "C:\\Program Files\\Java\\jdk-17",
             "default": true
         }
-    ]
+    ],
+    "java.import.gradle.enabled": false,
+    "java.import.gradle.wrapper.enabled": false,
+    "java.import.exclusions": [
+        "**/node_modules/**",
+        "**/.metadata/**",
+        "**/archetype-resources/**",
+        "**/META-INF/maven/**",
+        "**/android/**",
+        "**/build/**",
+        "**/.dart_tool/**"
+    ],
+    "gradle.nestedProjects": false,
+    "gradle.autoDetect": "off"
 }
