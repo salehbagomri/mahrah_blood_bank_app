@@ -274,14 +274,21 @@ class DonorService {
     }
   }
 
-  /// البحث بالاسم أو رقم الهاتف
+  /// البحث بالاسم أو رقم الهاتف (يدعم البحث في جميع الأرقام)
   Future<List<DonorModel>> searchByNameOrPhone(String query) async {
     try {
       final response = await _client
           .from('donors')
           .select()
-          .or('name.ilike.%$query%,phone_number.ilike.%$query%')
-          .order('created_at', ascending: false);
+          .or(
+            'name.ilike.%$query%,'
+            'phone_number.ilike.%$query%,'
+            'phone_number_2.ilike.%$query%,'
+            'phone_number_3.ilike.%$query%',
+          )
+          .eq('is_active', true)
+          .order('name')
+          .limit(50);
 
       return (response as List)
           .map((json) => DonorModel.fromJson(json as Map<String, dynamic>))
