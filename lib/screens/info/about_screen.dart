@@ -5,8 +5,14 @@ import '../../constants/app_colors.dart';
 
 Future<void> _launchUrl(String url) async {
   final uri = Uri.parse(url);
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  try {
+    // وضع platformDefault هو الأفضل للـ mailto وتطبيقات النظام الداخلية
+    final mode = url.startsWith('http')
+        ? LaunchMode.externalApplication
+        : LaunchMode.platformDefault;
+    await launchUrl(uri, mode: mode);
+  } catch (e) {
+    debugPrint('Could not launch $url : $e');
   }
 }
 
@@ -294,12 +300,14 @@ class AboutScreen extends StatelessWidget {
             subtitle: 'تواصل عبر واتساب',
             color: const Color(0xFF25D366),
             onTap: () => _launchUrl('https://wa.me/967770727055'),
+            isLtr: true, // فرض اتجاه من اليسار لليمين
           ),
           const SizedBox(height: 10),
           _buildContactButton(
             icon: Icons.language,
             label: 'www.bagomri.com',
             onTap: () => _launchUrl('https://www.bagomri.com'),
+            isLtr: true,
           ),
           const SizedBox(height: 10),
           _buildContactButton(
@@ -314,7 +322,7 @@ class AboutScreen extends StatelessWidget {
 
           // حقوق النشر
           const Text(
-            '© 2024 بنك دم المهرة',
+            'بنك دم المهرة 2025 \u00A9',
             style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 4),
@@ -336,6 +344,7 @@ class AboutScreen extends StatelessWidget {
     String? subtitle,
     Color? color,
     VoidCallback? onTap,
+    bool isLtr = false,
   }) {
     final isClickable = onTap != null;
     return InkWell(
@@ -358,6 +367,7 @@ class AboutScreen extends StatelessWidget {
                 children: [
                   Text(
                     label,
+                    textDirection: isLtr ? TextDirection.ltr : null,
                     style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.textPrimary,
