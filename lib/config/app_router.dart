@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/donor_model.dart';
 import '../models/report_model.dart';
 import '../models/hospital_model.dart';
+import '../utils/page_transitions.dart';
 
 import '../screens/auth/login_screen.dart';
 import '../screens/home/home_screen.dart';
@@ -78,98 +79,165 @@ class AppRouter {
 
   static Route<dynamic>? generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      // ── الشاشات الجذرية → Fade ──────────────────────────────────
       case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return AppPageTransitions.fade(const HomeScreen(), settings: settings);
       case login:
-        return MaterialPageRoute(builder: (_) => const LoginScreen());
+        return AppPageTransitions.fade(const LoginScreen(), settings: settings);
 
+      // ── شاشات المتبرع ────────────────────────────────────────────
       case addDonor:
-        return MaterialPageRoute(builder: (_) => const AddDonorScreen());
+        return AppPageTransitions.slideUp(
+          const AddDonorScreen(),
+          settings: settings,
+        );
       case searchDonors:
-        return MaterialPageRoute(builder: (_) => const SearchDonorsScreen());
+        return AppPageTransitions.slideFromRight(
+          const SearchDonorsScreen(),
+          settings: settings,
+        );
 
+      // ── الداشبوردات → Scale ─────────────────────────────────────
       case adminDashboard:
-        return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
+        return AppPageTransitions.scaleUp(
+          const AdminDashboardScreen(),
+          settings: settings,
+        );
+      case hospitalDashboard:
+        return AppPageTransitions.scaleUp(
+          const HospitalDashboardScreen(),
+          settings: settings,
+        );
+
+      // ── الشاشات الفرعية للأدمن → Slide ─────────────────────────
       case adminManageDonors:
-        return MaterialPageRoute(builder: (_) => const ManageDonorsScreen());
+        return AppPageTransitions.slideFromRight(
+          const ManageDonorsScreen(),
+          settings: settings,
+        );
       case adminManageHospitals:
-        return MaterialPageRoute(builder: (_) => const ManageHospitalsScreen());
+        return AppPageTransitions.slideFromRight(
+          const ManageHospitalsScreen(),
+          settings: settings,
+        );
       case adminAddHospital:
-        return MaterialPageRoute(builder: (_) => const AddHospitalScreen());
+        return AppPageTransitions.slideUp(
+          const AddHospitalScreen(),
+          settings: settings,
+        );
       case adminEditHospital:
         if (settings.arguments is HospitalModel) {
-          final hospital = settings.arguments as HospitalModel;
-          return MaterialPageRoute(
-            builder: (_) => EditHospitalScreen(hospital: hospital),
+          return AppPageTransitions.slideUp(
+            EditHospitalScreen(hospital: settings.arguments as HospitalModel),
+            settings: settings,
           );
         }
         return _errorRoute();
       case adminEditDonor:
         if (settings.arguments is DonorModel) {
-          final donor = settings.arguments as DonorModel;
-          return MaterialPageRoute(
-            builder: (_) => EditDonorScreen(donor: donor),
+          return AppPageTransitions.slideUp(
+            EditDonorScreen(donor: settings.arguments as DonorModel),
+            settings: settings,
           );
         }
         return _errorRoute();
       case adminReportDetail:
         if (settings.arguments is ReportModel) {
-          final report = settings.arguments as ReportModel;
-          return MaterialPageRoute(
-            builder: (_) => ReportDetailScreen(report: report),
+          return AppPageTransitions.slideFromRight(
+            ReportDetailScreen(report: settings.arguments as ReportModel),
+            settings: settings,
           );
         }
         return _errorRoute();
       case adminReviewReports:
-        return MaterialPageRoute(builder: (_) => const ReviewReportsScreen());
-      case adminSystemOverview:
-        return MaterialPageRoute(builder: (_) => const SystemOverviewScreen());
-
-      case hospitalDashboard:
-        return MaterialPageRoute(
-          builder: (_) => const HospitalDashboardScreen(),
+        return AppPageTransitions.slideFromRight(
+          const ReviewReportsScreen(),
+          settings: settings,
         );
+      case adminSystemOverview:
+        return AppPageTransitions.slideFromRight(
+          const SystemOverviewScreen(),
+          settings: settings,
+        );
+
+      // ── الشاشات الفرعية للمستشفى → Slide ───────────────────────
       case hospitalManageDonors:
-        return MaterialPageRoute(
-          builder: (_) => const ManageDonorsHospitalScreen(),
+        return AppPageTransitions.slideFromRight(
+          const ManageDonorsHospitalScreen(),
+          settings: settings,
         );
       case hospitalSuspendedDonors:
-        return MaterialPageRoute(builder: (_) => const SuspendedDonorsScreen());
+        return AppPageTransitions.slideFromRight(
+          const SuspendedDonorsScreen(),
+          settings: settings,
+        );
       case hospitalAdvancedSearch:
-        return MaterialPageRoute(builder: (_) => const AdvancedSearchScreen());
+        return AppPageTransitions.slideFromRight(
+          const AdvancedSearchScreen(),
+          settings: settings,
+        );
       case hospitalReportsHub:
-        return MaterialPageRoute(builder: (_) => const ReportsHubScreen());
+        return AppPageTransitions.slideFromRight(
+          const ReportsHubScreen(),
+          settings: settings,
+        );
       case hospitalReportComprehensive:
-        return MaterialPageRoute(
-          builder: (_) => const ComprehensiveReportScreen(),
+        return AppPageTransitions.slideFromRight(
+          const ComprehensiveReportScreen(),
+          settings: settings,
         );
       case hospitalReportDistrict:
-        return MaterialPageRoute(builder: (_) => const DistrictReportScreen());
+        return AppPageTransitions.slideFromRight(
+          const DistrictReportScreen(),
+          settings: settings,
+        );
       case hospitalReportBloodTypeDetailed:
-        return MaterialPageRoute(
-          builder: (_) => const BloodTypeDetailedReportScreen(),
+        return AppPageTransitions.slideFromRight(
+          const BloodTypeDetailedReportScreen(),
+          settings: settings,
         );
       case hospitalReportAvailability:
-        return MaterialPageRoute(
-          builder: (_) => const AvailabilityReportScreen(),
+        return AppPageTransitions.slideFromRight(
+          const AvailabilityReportScreen(),
+          settings: settings,
         );
       case hospitalReportMonthlySummary:
-        return MaterialPageRoute(
-          builder: (_) => const MonthlySummaryReportScreen(),
+        return AppPageTransitions.slideFromRight(
+          const MonthlySummaryReportScreen(),
+          settings: settings,
         );
       case hospitalReportBloodType:
-        return MaterialPageRoute(builder: (_) => const BloodTypeReportScreen());
+        return AppPageTransitions.slideFromRight(
+          const BloodTypeReportScreen(),
+          settings: settings,
+        );
       case hospitalExportReports:
-        return MaterialPageRoute(builder: (_) => const ExportReportsScreen());
+        return AppPageTransitions.slideFromRight(
+          const ExportReportsScreen(),
+          settings: settings,
+        );
 
+      // ── شاشات متنوعة ───────────────────────────────────────────
       case infoAbout:
-        return MaterialPageRoute(builder: (_) => const AboutScreen());
+        return AppPageTransitions.slideFromRight(
+          const AboutScreen(),
+          settings: settings,
+        );
       case infoContact:
-        return MaterialPageRoute(builder: (_) => const ContactScreen());
+        return AppPageTransitions.slideFromRight(
+          const ContactScreen(),
+          settings: settings,
+        );
       case awareness:
-        return MaterialPageRoute(builder: (_) => const AwarenessScreen());
+        return AppPageTransitions.slideFromRight(
+          const AwarenessScreen(),
+          settings: settings,
+        );
       case reportDonor:
-        return MaterialPageRoute(builder: (_) => const ReportDonorScreen());
+        return AppPageTransitions.slideUp(
+          const ReportDonorScreen(),
+          settings: settings,
+        );
 
       default:
         return _errorRoute();
@@ -177,8 +245,8 @@ class AppRouter {
   }
 
   static Route<dynamic> _errorRoute() {
-    return MaterialPageRoute(
-      builder: (_) => Scaffold(
+    return AppPageTransitions.fade(
+      Scaffold(
         appBar: AppBar(title: const Text('خطأ في التنقل')),
         body: const Center(
           child: Text('عذراً، لم يتم العثور على الشاشة المطلوبة'),

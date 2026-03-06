@@ -7,7 +7,7 @@ import '../../constants/app_strings.dart';
 import '../../providers/donor_provider.dart';
 import '../../widgets/custom_dropdown.dart';
 import '../../widgets/expandable_donor_card.dart';
-import '../../widgets/loading_widget.dart';
+import '../../widgets/shimmer_loading.dart';
 import '../../widgets/empty_state.dart';
 
 /// صفحة البحث المحسّنة عن المتبرعين
@@ -349,7 +349,7 @@ class _SearchDonorsScreenState extends State<SearchDonorsScreen>
             child: Consumer<DonorProvider>(
               builder: (context, provider, _) {
                 if (provider.isLoading) {
-                  return const LoadingWidget(message: 'جاري البحث...');
+                  return const DonorListShimmer(count: 5);
                 }
 
                 if (provider.hasError && _hasSearched) {
