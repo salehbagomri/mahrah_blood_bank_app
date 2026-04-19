@@ -9,6 +9,7 @@ import '../../providers/statistics_provider.dart';
 import '../../config/app_router.dart';
 import '../../config/service_locator.dart';
 import '../../services/connectivity_service.dart';
+import '../../services/update_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// الصفحة الرئيسية للتطبيق
@@ -26,6 +27,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+
+    // 🔄 التحقق من وجود تحديث إجباري (In-App Update)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateService.checkForUpdate(context);
+    });
+
     // تحميل الإحصائيات عند فتح التطبيق
     Future.microtask(() {
       context.read<StatisticsProvider>().loadStatistics();

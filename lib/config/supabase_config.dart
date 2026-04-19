@@ -11,13 +11,24 @@
 /// أو استخدم ملف .env.json:
 /// flutter build apk --release --dart-define-from-file=.env.json
 class SupabaseConfig {
-  /// عنوان مشروع Supabase
-  /// يُقرأ من --dart-define=SUPABASE_URL
-  /// أو يستخدم القيمة الافتراضية للتطوير
+  /// ─────────────────────────────────────────────────────
+  /// عنوان Supabase عبر Cloudflare Worker (Reverse Proxy)
+  /// ─────────────────────────────────────────────────────
+  /// 🚨 مهم: بعد إنشاء الـ Worker في Cloudflare، استبدل
+  /// الـ defaultValue بالرابط الفعلي للـ Worker.
+  ///
+  /// مثال: https://mahrah-blood-bank-proxy.saleh-xxx.workers.dev
+  /// ─────────────────────────────────────────────────────
   static const String supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue: 'https://mgeshfxrcdilwjohoniv.supabase.co',
+    defaultValue: 'WORKER_URL_HERE',
+    // ⬆️ استبدل WORKER_URL_HERE برابط الـ Worker بعد إنشائه
+    // مثال: 'https://mahrah-blood-bank-proxy.saleh-abc.workers.dev'
   );
+
+  /// عنوان Supabase الأصلي (للاستخدام الداخلي فقط — محجوب في اليمن)
+  static const String supabaseDirectUrl =
+      'https://mgeshfxrcdilwjohoniv.supabase.co';
 
   /// المفتاح العام (Anon Key)
   /// يُقرأ من --dart-define=SUPABASE_ANON_KEY
@@ -33,12 +44,14 @@ class SupabaseConfig {
   /// 2. المفتاح العام (anon key) آمن للاستخدام في التطبيق
   /// 3. الحماية تتم عبر Row Level Security (RLS) في Supabase
   /// 4. في الإنتاج، مرر المفاتيح عبر --dart-define أو --dart-define-from-file
+  /// 5. الـ URL الآن يمر عبر Cloudflare Worker لتجاوز حجب supabase.co
 
   /// التحقق من صحة الإعدادات
   static bool get isConfigured {
     return supabaseUrl.isNotEmpty &&
         supabaseAnonKey.isNotEmpty &&
         supabaseUrl != 'YOUR_SUPABASE_URL' &&
+        supabaseUrl != 'WORKER_URL_HERE' &&
         supabaseAnonKey != 'YOUR_SUPABASE_ANON_KEY';
   }
 }
