@@ -142,7 +142,7 @@ class AboutScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Text(
-              'الإصدار 1.0.1',
+              'الإصدار 1.0.3',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.white,
@@ -322,7 +322,7 @@ class AboutScreen extends StatelessWidget {
 
           // حقوق النشر
           const Text(
-            'بنك دم المهرة 2025 \u00A9',
+            'بنك دم المهرة 2026 \u00A9',
             style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 4),
