@@ -106,3 +106,11 @@ coverage/
 
 # Claude Code settings
 .claude/
+
+# Planning and internal working documents
+*_plan.md
+*_summary.md
+tamm_app_summary.md
+
+# IDE metadata
+.metadata
